@@ -39,9 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
-    # Third-party apps
+    # Custom apps
     "core",
+    "userauths",
 ]
 
 MIDDLEWARE = [
@@ -136,8 +136,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 JAZZMIN_SETTINGS = {
-    'site_header': "SmartChef",
-    'site_brand': "Buy Smart, Cook Smarter!",
-    'site_logo': "assets/imgs/theme/loading.gif",
-    'copyright': "SmartChef",
+    "site_header": "SmartChef",
+    "site_brand": "Buy Smart, Cook Smarter!",
+    "site_logo": "assets/imgs/theme/loading.gif",
+    "copyright": "SmartChef",
 }
+
+AUTH_USER_MODEL = "userauths.User"
