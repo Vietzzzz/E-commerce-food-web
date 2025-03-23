@@ -492,11 +492,21 @@
                             >Setting</a
                           >
                         </li>
+                        {% if request.user.is_authenticated %}
                         <li>
-                          <a href="page-login.html"
+                          <a href="{% url 'userauths:sign-out' %}"
                             ><i class="fi fi-rs-sign-out mr-10"></i>Sign out</a
                           >
                         </li>
+                        {% else %}
+
+                        <li>
+                          <a href="{% url 'userauths:sign-in' %}"
+                            ><i class="fi fi-rs-sign-in mr-10"></i>Sign In</a
+                          >
+                        </li>
+
+                        {% endif %}
                       </ul>
                     </div>
                   </div>
