@@ -3,18 +3,6 @@ from django.db.models import Count
 
 from core.models import Product, Category, Vendor, CartOrder, CartOrderItems, ProductImages, ProductReview, wishlist, Address
 
-from core.models import (
-    Category,
-    Product,
-    Vendor,
-    CartOrder,
-    CartOrderItems,
-    wishlist,
-    ProductImages,
-    ProductReview,
-    Address,
-)
-
 
 # Create your views here.
 def index(request):
@@ -57,3 +45,10 @@ def category_product_list_view(request, cid):
         "products" : products,
     } 
     return render(request , "core/category-product-list.html", context )
+
+def vendor_list_view(request):
+    vendors = Vendor.objects.all()
+    context = {
+        "vendors": vendors,
+    }
+    return render(request, "core/vendor-list.html", context)
