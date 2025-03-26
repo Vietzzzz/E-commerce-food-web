@@ -27,6 +27,7 @@ class ProductAdmin(admin.ModelAdmin):
         "vendor",
         "featured",
         "product_status",
+        "pid",
     ]
 
 
