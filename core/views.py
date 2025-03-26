@@ -68,11 +68,18 @@ def vendor_detail_view(request, vid):
 
 def product_detail_view(request, pid):
     product = Product.objects.get(pid=pid)
-    # product = get_object_or_404(Product, pid=pid)
-
     p_image = product.p_images.all()
+    
+    address = None
+    if request.user.is_authenticated:
+        try:
+            address = Address.objects.get(status=True, user=request.user)
+        except Address.DoesNotExist:
+            address = None
+    
     context = {
         "p": product,
         "p_image": p_image,
+        "address": address,  
     }
     return render(request, "core/product-detail.html", context)
