@@ -11,6 +11,7 @@ from core.views import (
     vendor_list_view,
     vendor_detail_view,
     tag_list,
+    search_view,
 )
 
 app_name = "core"
@@ -30,4 +31,8 @@ urlpatterns = [
     path("products/tag/<slug:tag_slug>/", tag_list, name="tags"),
     # Add review
     path("ajax-add-review/<int:pid>/", ajax_add_review, name="ajax_add_review"),
+
+
+    #Search 
+    path ("search/", search_view, name= "search" )
 ]
