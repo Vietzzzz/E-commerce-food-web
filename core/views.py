@@ -3,7 +3,7 @@
 from taggit.models import Tag
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Count
+from django.db.models import Count, Avg
 
 
 
@@ -76,6 +76,13 @@ def vendor_detail_view(request, vid):
 def product_detail_view(request, pid):
     product = Product.objects.get(pid=pid)
     products = Product.objects.filter(category = product.category).exclude(pid =pid)
+    
+    # Getting all reviews related to a product
+    reviews = ProductReview.objects.filter(product=product).order_by("-date")
+    
+    # Getting average review
+    average_rating = ProductReview.objects.filter(product=product).aggregate(rating=Avg('rating'))
+    
     p_image = product.p_images.all()
     
     address = None
@@ -88,6 +95,8 @@ def product_detail_view(request, pid):
     context = {
         "p": product,
         "p_image": p_image,
+        "reviews": reviews,
+        "average_rating": average_rating,
         "products": products ,
         "address": address,  
     }

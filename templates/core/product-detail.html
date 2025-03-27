@@ -116,13 +116,13 @@
                                                 <a class="nav-link" id="Vendor-info-tab" data-bs-toggle="tab" href="#Vendor-info">Vendor</a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link" id="Reviews-tab" data-bs-toggle="tab" href="#Reviews">Reviews (3)</a>
+                                                <a class="nav-link" id="Reviews-tab" data-bs-toggle="tab" href="#Reviews">Reviews ({{ reviews.count }})</a>
                                             </li>
                                         </ul>
                                         <div class="tab-content shop_info_tab entry-main-content">
                                             <div class="tab-pane fade show active" id="Description">
                                                 <div class=""> 
-                                                    <p>{{p.description|truncatechars:100}}</p>
+                                                    <p>{{p.description|safe}}</p>
                                                 </div> 
                                             </div>
                                             <div class="tab-pane fade" id="Additional-info">
@@ -257,66 +257,27 @@
                                                         <div class="col-lg-8">
                                                             <h4 class="mb-30">Customer questions & answers</h4>
                                                             <div class="comment-list">
+                                                                {% for r in reviews %}
                                                                 <div class="single-comment justify-content-between d-flex mb-30">
                                                                     <div class="user justify-content-between d-flex">
                                                                         <div class="thumb text-center">
-                                                                            <img src="{% static 'assets/imgs/blog/author-2.png' %}" alt="" />
-                                                                            <a href="#" class="font-heading text-brand">Sienna</a>
+                                                                            <img src="data:image/jpeg;base64,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" alt="" />
+                                                                            <a href="#" class="font-heading text-brand">{{r.user.username|title}}</a>
                                                                         </div>
                                                                         <div class="desc">
                                                                             <div class="d-flex justify-content-between mb-10">
                                                                                 <div class="d-flex align-items-center">
-                                                                                    <span class="font-xs text-muted">December 4, 2022 at 3:12 pm </span>
+                                                                                    <span class="font-xs text-muted">{{r.date|date:"d M, Y"}}</span>
                                                                                 </div>
                                                                                 <div class="product-rate d-inline-block">
                                                                                     <div class="product-rating" style="width: 100%"></div>
                                                                                 </div>
                                                                             </div>
-                                                                            <p class="mb-10">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus, suscipit exercitationem accusantium obcaecati quos voluptate nesciunt facilis itaque modi commodi dignissimos
-                                                                                sequi repudiandae minus ab deleniti totam officia id incidunt? <a href="#" class="reply">Reply</a></p>
+                                                                            <p class="mb-10">{{ r.review}}</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="single-comment justify-content-between d-flex mb-30 ml-30">
-                                                                    <div class="user justify-content-between d-flex">
-                                                                        <div class="thumb text-center">
-                                                                            <img src="{% static 'assets/imgs/blog/author-3.png' %}" alt="" />
-                                                                            <a href="#" class="font-heading text-brand">Brenna</a>
-                                                                        </div>
-                                                                        <div class="desc">
-                                                                            <div class="d-flex justify-content-between mb-10">
-                                                                                <div class="d-flex align-items-center">
-                                                                                    <span class="font-xs text-muted">December 4, 2022 at 3:12 pm </span>
-                                                                                </div>
-                                                                                <div class="product-rate d-inline-block">
-                                                                                    <div class="product-rating" style="width: 80%"></div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <p class="mb-10">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus, suscipit exercitationem accusantium obcaecati quos voluptate nesciunt facilis itaque modi commodi dignissimos
-                                                                                sequi repudiandae minus ab deleniti totam officia id incidunt? <a href="#" class="reply">Reply</a></p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="single-comment justify-content-between d-flex">
-                                                                    <div class="user justify-content-between d-flex">
-                                                                        <div class="thumb text-center">
-                                                                            <img src="{% static 'assets/imgs/blog/author-4.png' %}" alt="" />
-                                                                            <a href="#" class="font-heading text-brand">Gemma</a>
-                                                                        </div>
-                                                                        <div class="desc">
-                                                                            <div class="d-flex justify-content-between mb-10">
-                                                                                <div class="d-flex align-items-center">
-                                                                                    <span class="font-xs text-muted">December 4, 2022 at 3:12 pm </span>
-                                                                                </div>
-                                                                                <div class="product-rate d-inline-block">
-                                                                                    <div class="product-rating" style="width: 80%"></div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <p class="mb-10">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus, suscipit exercitationem accusantium obcaecati quos voluptate nesciunt facilis itaque modi commodi dignissimos
-                                                                                sequi repudiandae minus ab deleniti totam officia id incidunt? <a href="#" class="reply">Reply</a></p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                                                {% endfor %}
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-4">
@@ -325,7 +286,7 @@
                                                                 <div class="product-rate d-inline-block mr-15">
                                                                     <div class="product-rating" style="width: 90%"></div>
                                                                 </div>
-                                                                <h6>4.8 out of 5</h6>
+                                                                <h6>{{ average_rating.rating|floatformat:1 }} out of 5.0</h6>
                                                             </div>
                                                             <div class="progress">
                                                                 <span>5 star</span>

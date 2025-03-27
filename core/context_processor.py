@@ -2,8 +2,10 @@ from core.models import Product, Address, Category, Vendor, CartOrder, CartOrder
 
 def default(request):
     categories = Category.objects.all()
-    address = Address.objects.all()
-    
+    try:
+        address = Address.objects.get(user=request.user)
+    except:
+        address = None
     return{
         'categories':categories,
         'address':address,
