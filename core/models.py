@@ -2,6 +2,7 @@ from django.db import models
 from shortuuid.django_fields import ShortUUIDField
 from django.utils.html import mark_safe
 from userauths.models import User
+from taggit.managers import TaggableManager 
 
 STATUS_CHOICES = (
     ("process", "Processing"),
@@ -115,6 +116,9 @@ class Product(models.Model):
         null=True,
         blank=True,
     )
+
+
+    tags = TaggableManager(blank=True) 
 
     # tags = models.ForeignKey(Tags, on_delete=models.SET_NULL, null=True)
 

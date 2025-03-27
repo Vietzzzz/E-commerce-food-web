@@ -7,6 +7,7 @@ from core.views import (
     product_list_view,
     vendor_list_view,
     vendor_detail_view,
+    tag_list,
 )
 
 app_name = "core"
@@ -22,4 +23,8 @@ urlpatterns = [
     # Vendor
     path("vendors/", vendor_list_view, name="vendor-list"),
     path("vendor/<vid>/", vendor_detail_view, name="vendor-detail"),
-]
+
+
+    #tags 
+    path("products/tag/<slug:tag_slug>/", tag_list, name = "tags")
+] 
