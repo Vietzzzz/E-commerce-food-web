@@ -1,7 +1,13 @@
 console.log("working fine");
 
+const monthsName = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+
 $("#commentForm").submit(function (e) {
     e.preventDefault();
+
+    let dt = new Date();
+    let time = dt.getDate() + " " + monthsName[dt.getUTCMonth()] + ", " + dt.getFullYear();
 
     $.ajax({
         data: $(this).serialize(),
@@ -17,28 +23,33 @@ $("#commentForm").submit(function (e) {
                 $(".add-review").hide();
 
                 let _html = '<div class="single-comment justify-content-between d-flex mb-30">'
-                _html += '< div class="user justify-content-between d-flex" >'
+                _html += '<div class="user justify-content-between d-flex" >'
                 _html += '<div class="thumb text-center">'
                 _html += '<img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" alt="" />'
-                _html += '<a href="#" class="font-heading text-brand">{{r.user.username|title}}</a>'
+                _html += '<a href="#" class="font-heading text-brand">' + res.context.user + '</a>'
                 _html += '</div>'
 
                 _html += '<div class="desc">'
                 _html += '<div class="d-flex justify-content-between mb-10">'
                 _html += '<div class="d-flex align-items-center">'
-                _html += '<span class="font-xs text-muted">{{r.date|date:"d M, Y"}}</span>'
+                _html += '<span class="font-xs text-muted">' + time + '</span>'
                 _html += '</div>'
 
-                _html += '<div class="product-rate d-inline-block">'
-                _html += '<div class="product-rating" style="width: 100%"></div>'
-                _html += '</div>'
+                for (let i = 1; i <= res.context.rating; i++) {
+                    _html += '<i class="fa fa-star text-warning"></i>'
+                }
+
                 _html += '</div>'
                 _html += '<p class="mb-10">' + res.context.review + '</p>'
 
                 _html += '</div>'
                 _html += '</div >'
                 _html += '</div >'
+
+                // dynamically add new content to a list or container without refreshing the page
+                $(".comment-list").prepend(_html);
             }
+
         },
     });
 });
