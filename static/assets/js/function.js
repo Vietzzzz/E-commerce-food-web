@@ -76,6 +76,19 @@ $(document).ready(function (){
 
         })
         console.log("Filter Object is: ",filter_object);
+        $.ajax({
+            url: '/filter-products',
+            data: filter_object,
+            dataType: 'json',
+            beforeSend: function(){
+                console.log("Trying to filter product...");
+            },
+            success: function(response){
+                console.log(response);
+                console.log("Data filtered sucessfully...");
+                $("#filtered-product").html(response.data)
+            }
+        })
     })
 }
 )
