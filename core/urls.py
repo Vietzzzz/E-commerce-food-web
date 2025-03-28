@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 from core.views import (
     ajax_add_review,
     category_list_view,
@@ -12,6 +13,7 @@ from core.views import (
     vendor_detail_view,
     tag_list,
     search_view,
+    filter_product,
 )
 
 app_name = "core"
@@ -34,5 +36,8 @@ urlpatterns = [
 
 
     #Search 
-    path ("search/", search_view, name= "search" )
+    path ("search/", search_view, name= "search" ),
+    
+    # Filter product URL
+    path("filter-products/", filter_product, name="filter-product"),
 ]
