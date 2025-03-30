@@ -85,7 +85,7 @@ DATABASES = {
         'NAME': 'web_food',
         'USER': 'postgres',
         'PASSWORD': 'yashinwoo22',
-        'HOST': '172.19.11.50',  # Replace with your PostgreSQL server's address if necessary
+        'HOST': 'localhost',  # Replace with your PostgreSQL server's address if necessary
         'PORT': '5432',          # Leave empty to use the default PostgreSQL port (usually 5432)
     }
 }
