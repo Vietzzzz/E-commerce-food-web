@@ -13,6 +13,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 
+import os
+from dotenv import load_dotenv
+
+# Tải các biến từ file .env
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -82,11 +88,11 @@ WSGI_APPLICATION = "ecommerce_food_web.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'web_food',
-        'USER': 'postgres',
-        'PASSWORD': 'yashinwoo22',
-        'HOST': 'localhost',  # Replace with your PostgreSQL server's address if necessary
-        'PORT': '5432',          # Leave empty to use the default PostgreSQL port (usually 5432)
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),  # Tự động lấy từ .env
+        'PORT': os.getenv('DB_PORT'),         # Leave empty to use the default PostgreSQL port (usually 5432)
     }
 }
 
