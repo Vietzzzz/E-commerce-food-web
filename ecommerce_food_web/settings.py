@@ -84,9 +84,13 @@ WSGI_APPLICATION = "ecommerce_food_web.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'web_food',
+        'USER': 'postgres',
+        'PASSWORD': 'yashinwoo22',
+        'HOST': '172.19.11.50',  # Replace with your PostgreSQL server's address if necessary
+        'PORT': '5432',          # Leave empty to use the default PostgreSQL port (usually 5432)
     }
 }
 
