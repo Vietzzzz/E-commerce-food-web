@@ -39,10 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    #Third party 
-    'taggit', 
-    'django_ckeditor_5',
-    
+    # Third party
+    "taggit",
+    "django_ckeditor_5",
     # Custom apps
     "core",
     "userauths",
@@ -85,8 +84,12 @@ WSGI_APPLICATION = "ecommerce_food_web.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "django",
+        "USER": "postgres",
+        "PASSWORD": "1234",
+        "HOST": "localhost",  # Replace with your PostgreSQL server's address if necessary
+        "PORT": "",  # Leave empty to use the default PostgreSQL port (usually 5432)
     }
 }
 
@@ -149,7 +152,7 @@ JAZZMIN_SETTINGS = {
 
 AUTH_USER_MODEL = "userauths.User"
 
-CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_UPLOAD_PATH = "uploads/"
 
 customColorPalette = [
     {"color": "hsl(4, 90%, 58%)", "label": "Red"},
@@ -171,7 +174,7 @@ CKEDITOR_5_CONFIGS = {
             "bulletedList",
             "numberedList",
             "blockQuote",
-            "imageUpload"
+            "imageUpload",
         ],
     },
     "comment": {
@@ -205,7 +208,6 @@ CKEDITOR_5_CONFIGS = {
         "toolbar": [
             # "heading",
             # "|",
-            
             # "|",
             "bold",
             "italic",
@@ -247,7 +249,7 @@ CKEDITOR_5_CONFIGS = {
                 "imageStyle:side",
                 "|",
                 "toggleImageCaption",
-                "|"
+                "|",
             ],
             "styles": [
                 "full",

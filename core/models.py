@@ -2,7 +2,7 @@ from django.db import models
 from shortuuid.django_fields import ShortUUIDField
 from django.utils.html import mark_safe
 from userauths.models import User
-from taggit.managers import TaggableManager 
+from taggit.managers import TaggableManager
 from django_ckeditor_5.fields import CKEditor5Field
 
 STATUS_CHOICES = (
@@ -61,7 +61,7 @@ class Vendor(models.Model):
     title = models.CharField(max_length=100, default="Nestify")
     image = models.ImageField(upload_to=user_directory_path, default="vendor.jpg")
     cover_image = models.ImageField(upload_to=user_directory_path, default="vendor.jpg")
-    #description = models.TextField(null=True, blank=True, default="I am Iron Man.")
+    # description = models.TextField(null=True, blank=True, default="I am Iron Man.")
     description = CKEditor5Field(null=True, blank=True, default="I am Iron Man.")
 
     address = models.CharField(max_length=100, default="123 Main Street, LonDon.")
@@ -100,17 +100,13 @@ class Product(models.Model):
 
     title = models.CharField(max_length=100, default="Fresh Pear")
     image = models.ImageField(upload_to=user_directory_path, default="product.jpg")
-    #description = models.TextField(null=True, blank=True, default="This is a product.")
+    # description = models.TextField(null=True, blank=True, default="This is a product.")
     description = CKEditor5Field(null=True, blank=True, default="This is a product.")
 
-    price = models.DecimalField(
-        max_digits=999999999999999999, decimal_places=2, default=1.00
-    )
-    old_price = models.DecimalField(
-        max_digits=999999999999999999, decimal_places=2, default=2.00
-    )
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=1.00)
+    old_price = models.DecimalField(max_digits=8, decimal_places=2, default=2.00)
 
-    #specifications = models.TextField(null=True, blank=True)
+    # specifications = models.TextField(null=True, blank=True)
     specifications = CKEditor5Field(null=True, blank=True)
     type = models.CharField(max_length=100, default="Organic", null=True, blank=True)
     stock_count = models.CharField(max_length=100, default="10", null=True, blank=True)
@@ -121,8 +117,7 @@ class Product(models.Model):
         blank=True,
     )
 
-
-    tags = TaggableManager(blank=True) 
+    tags = TaggableManager(blank=True)
 
     # tags = models.ForeignKey(Tags, on_delete=models.SET_NULL, null=True)
 
@@ -176,9 +171,7 @@ class ProductImages(models.Model):
 
 class CartOrder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    price = models.DecimalField(
-        max_digits=999999999999999999, decimal_places=2, default=1.00
-    )
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=1.00)
     paid_status = models.BooleanField(default=False)
     order_date = models.DateTimeField(auto_now_add=True)
     product_status = models.CharField(
@@ -196,12 +189,8 @@ class CartOrderItems(models.Model):
     item = models.CharField(max_length=200)
     image = models.CharField(max_length=200)
     qty = models.IntegerField(default=0)
-    price = models.DecimalField(
-        max_digits=999999999999999999, decimal_places=2, default=1.00
-    )
-    total = models.DecimalField(
-        max_digits=999999999999999999, decimal_places=2, default=1.00
-    )
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=1.00)
+    total = models.DecimalField(max_digits=8, decimal_places=2, default=1.00)
 
     class Meta:
         verbose_name_plural = "Cart Order Items"
@@ -220,7 +209,9 @@ class CartOrderItems(models.Model):
 
 class ProductReview(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, related_name="reviews")
+    product = models.ForeignKey(
+        Product, on_delete=models.SET_NULL, null=True, related_name="reviews"
+    )
     review = models.TextField()
     rating = models.IntegerField(choices=RATING, default=None)
     date = models.DateTimeField(auto_now_add=True)
