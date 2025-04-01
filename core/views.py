@@ -267,7 +267,7 @@ def add_to_cart(request):
         # Initialize cart if it doesn't exist
         request.session["cart_data_obj"] = cart_product
     return JsonResponse(
-        {"data": request.session["cart_data_obj"], "totalcartitems": len(request.session['cart_data_obj'])}
+        {"data": request.session['cart_data_obj'], 'totalcartitems': len(request.session['cart_data_obj'])}
     )
     
 def cart_view(request):
@@ -275,7 +275,7 @@ def cart_view(request):
     if 'cart_data_obj' in request.session:
         for p_id, item in request.session['cart_data_obj'].items():
             cart_total_amount += int(item['qty']) * float(item['price'])
-        return render(request, "core/cart.html", {"cart_data":request.session['cart_data_obj'], 'totalcartitems': len(request.session['cart_data_obj']), 'cart_total_amount':cart_total_amount})
+        return render(request, "core/cart.html",  {"cart_data": request.session['cart_data_obj'], 'totalcartitems': len(request.session['cart_data_obj']), 'cart_total_amount': cart_total_amount})
     else:
         messages.warning(request, "Your cart is empty")
         return redirect("core:index")
