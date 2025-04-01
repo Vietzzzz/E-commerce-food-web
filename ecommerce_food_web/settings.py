@@ -13,6 +13,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 
+import os
+from dotenv import load_dotenv
+
+# Tải các biến từ file .env
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -89,7 +95,7 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "1234",
         "HOST": "localhost",  # Replace with your PostgreSQL server's address if necessary
-        "PORT": "",  # Leave empty to use the default PostgreSQL port (usually 5432)
+        "PORT": ""
     }
 }
 
