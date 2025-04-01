@@ -142,7 +142,6 @@ $(document).ready(function () {
         let product_pid = $(".product-pid-" + index).val()
         let product_image = $(".product-image-" + index).val()
 
-
         console.log("Quantity:", quantity);
         console.log("Title:", product_title);
         console.log("Price:", product_price);

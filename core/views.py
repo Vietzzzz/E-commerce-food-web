@@ -2,11 +2,19 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Count, Avg
 from taggit.models import Tag
-from core.models import Product, Category, Vendor, CartOrder, CartOrderItems, ProductImages, ProductReview, wishlist, Address
+from core.models import (
+    Product,
+    Category,
+    Vendor,
+    CartOrder,
+    CartOrderItems,
+    ProductImages,
+    ProductReview,
+    wishlist,
+    Address,
+)
 from core.forms import ProductReviewForm
 from django.template.loader import render_to_string
-
-
 
 
 # Create your views here.
@@ -18,31 +26,44 @@ def index(request):
     return render(request, "core/index.html", context)
 
 
-
-
-
 def product_list_view(request):
     products = Product.objects.filter(product_status="published")
     categories = Category.objects.all()
     vendors = Vendor.objects.all()
-    
+
     # Get popular products for each category
     popular_categories = {
-        'all': Product.objects.filter(product_status="published").order_by('-id')[:8],
-        'milks_dairies': Product.objects.filter(product_status="published", category__title__icontains="milk").order_by('-id')[:8],
-        'coffees_teas': Product.objects.filter(product_status="published", category__title__icontains="coffee").order_by('-id')[:8],
-        'pet_foods': Product.objects.filter(product_status="published", category__title__icontains="pet").order_by('-id')[:8],
-        'meats': Product.objects.filter(product_status="published", category__title__icontains="meat").order_by('-id')[:8],
-        'vegetables': Product.objects.filter(product_status="published", category__title__icontains="vegetable").order_by('-id')[:8],
-        'fruits': Product.objects.filter(product_status="published", category__title__icontains="fruit").order_by('-id')[:8],
+        "all": Product.objects.filter(product_status="published").order_by("-id")[:8],
+        "milks_dairies": Product.objects.filter(
+            product_status="published", category__title__icontains="milk"
+        ).order_by("-id")[:8],
+        "coffees_teas": Product.objects.filter(
+            product_status="published", category__title__icontains="coffee"
+        ).order_by("-id")[:8],
+        "pet_foods": Product.objects.filter(
+            product_status="published", category__title__icontains="pet"
+        ).order_by("-id")[:8],
+        "meats": Product.objects.filter(
+            product_status="published", category__title__icontains="meat"
+        ).order_by("-id")[:8],
+        "vegetables": Product.objects.filter(
+            product_status="published", category__title__icontains="vegetable"
+        ).order_by("-id")[:8],
+        "fruits": Product.objects.filter(
+            product_status="published", category__title__icontains="fruit"
+        ).order_by("-id")[:8],
     }
-    
+
     # Get min and max prices from products
     min_max_price = {
-        'price__min': Product.objects.all().order_by('price').first().price if Product.objects.exists() else 0,
-        'price__max': Product.objects.all().order_by('-price').first().price if Product.objects.exists() else 100
+        "price__min": Product.objects.all().order_by("price").first().price
+        if Product.objects.exists()
+        else 0,
+        "price__max": Product.objects.all().order_by("-price").first().price
+        if Product.objects.exists()
+        else 100,
     }
-    
+
     context = {
         "products": products,
         "categories": categories,
@@ -179,70 +200,77 @@ def ajax_add_review(request, pid):
         }
     )
 
+
 def search_view(request):
     query = request.GET.get("q")
 
     products = Product.objects.filter(title__icontains=query).order_by("-date")
 
-
     context = {
-        "products": products, 
-        "query": query, 
-          
+        "products": products,
+        "query": query,
     }
     return render(request, "core/search.html", context)
+
 
 def filter_product(request):
     categories = request.GET.getlist("category[]")
     vendors = request.GET.getlist("vendor[]")
-    
-    min_price = request.GET['min_price']
-    max_price = request.GET['max_price']
-    
-    products = Product.objects.filter(product_status="published").order_by("-id").distinct()
-    
+
+    min_price = request.GET["min_price"]
+    max_price = request.GET["max_price"]
+
+    products = (
+        Product.objects.filter(product_status="published").order_by("-id").distinct()
+    )
+
     products = products.filter(price__gte=min_price)
     products = products.filter(price__lte=max_price)
-    
+
     if len(categories) > 0:
-        products = products.filter(category__id__in=categories).distinct() 
+        products = products.filter(category__id__in=categories).distinct()
 
     if len(vendors) > 0:
-        products = products.filter(vendor__id__in=vendors).distinct() 
-    
+        products = products.filter(vendor__id__in=vendors).distinct()
+
     data = render_to_string("core/async/product-list.html", {"products": products})
     return JsonResponse({"data": data})
+
 
 def add_to_cart(request):
     cart_product = {}
 
-    cart_product[str(request.GET['id'])] = {
-        'title': request.GET['title'],
-        'qty': request.GET['qty'],
-        'price': request.GET['price'],
-        'image': request.GET['image'],
-        'pid': request.GET['pid'],
+    cart_product[str(request.GET["id"])] = {
+        "title": request.GET["title"],
+        "qty": request.GET["qty"],
+        "price": request.GET["price"],
+        "image": request.GET["image"],
+        "pid": request.GET["pid"],
     }
 
-    if 'cart_data_obj' in request.session:
-        if str(request.GET['id']) in request.session['cart_data_obj']:
+    if "cart_data_obj" in request.session:
+        if str(request.GET["id"]) in request.session["cart_data_obj"]:
             # Update quantity if product exists
-            cart_data = request.session['cart_data_obj']
-            cart_data[str(request.GET['id'])]['qty'] = int(cart_product[str(request.GET['id'])]['qty'])
-            request.session['cart_data_obj'] = cart_data
+            cart_data = request.session["cart_data_obj"]
+            cart_data[str(request.GET["id"])]["qty"] = int(
+                cart_product[str(request.GET["id"])]["qty"]
+            )
+            # cart_data.update(cart_data)
+            request.session["cart_data_obj"] = cart_data
         else:
             # Add new product if it doesn't exist
-            cart_data = request.session['cart_data_obj']
+            cart_data = request.session["cart_data_obj"]
             cart_data.update(cart_product)
-            request.session['cart_data_obj'] = cart_data
+            request.session["cart_data_obj"] = cart_data
     else:
         # Initialize cart if it doesn't exist
-        request.session['cart_data_obj'] = cart_product
+        request.session["cart_data_obj"] = cart_product
 
     # Calculate total items
-    total_items = sum(int(item['qty']) for item in request.session['cart_data_obj'].values())
-    
-    return JsonResponse({
-        "data": request.session['cart_data_obj'], 
-        'totalcartitems': total_items
-    })
+    total_items = sum(
+        int(item["qty"]) for item in request.session["cart_data_obj"].values()
+    )
+
+    return JsonResponse(
+        {"data": request.session["cart_data_obj"], "totalcartitems": total_items}
+    )
