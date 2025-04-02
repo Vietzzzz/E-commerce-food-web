@@ -6,6 +6,7 @@ from core.views import (
     ajax_add_review,
     category_list_view,
     category_product_list_view,
+    delete_item_from_cart,
     index,
     product_detail_view,
     product_list_view,
@@ -48,4 +49,6 @@ urlpatterns = [
     
     # Cart Page URL
     path("cart/", cart_view, name="cart"),
+
+    path("delete-from-cart/", delete_item_from_cart, name="delete-from-cart"),
 ]

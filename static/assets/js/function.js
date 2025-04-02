@@ -142,6 +142,7 @@ $(document).ready(function () {
         let product_pid = $(".product-pid-" + index).val()
         let product_image = $(".product-image-" + index).val()
 
+
         console.log("Quantity:", quantity);
         console.log("Title:", product_title);
         console.log("Price:", product_price);
@@ -175,5 +176,30 @@ $(document).ready(function () {
 
             }
         })
+    })
+
+    $(document).on("click", '.delete-product', function() {
+
+        let product_id = $(this).attr("data-product")
+        let this_val = $(this)
+
+        console.log("PRoduct ID:", product_id);
+
+        $.ajax({
+            url: "/delete-from-cart",
+            data: {
+                "id": product_id
+            },
+            dataType: "json",
+            beforeSend: function () {
+                this_val.hide()
+            },
+            success: function (response) {
+                this_val.show()
+                $(".cart-items-count").text(response.totalcartitems)
+                $("#cart-list").html(response.data)
+            }
+        })
+
     })
 });

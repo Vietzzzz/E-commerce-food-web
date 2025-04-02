@@ -33,9 +33,9 @@
                                             </div>
                                             <!-- THUMBNAILS -->
                                             <div class="slider-nav-thumbnails">
-                                                <div><img src="{{p.image.url}}" alt="product image" /></div>
+                                                <div><img style="width: 140px; height: 140px; object-fit: cover;" src="{{p.image.url}}" alt="product image" /></div>
                                                 {% for p in p_image %}
-                                                <div><img src="{{p.image.url}}" alt="product image" /></div>
+                                                <div><img  style="width: 140px; height: 140px; object-fit: cover;" src="{{p.image.url}}" alt="product image" /></div>
                                                 {% endfor %}
                                             </div>
                                         </div>
@@ -55,15 +55,15 @@
                                             </div>
                                             <div class="clearfix product-price-cover">
                                                 <div class="product-price primary-color float-left">
-                                                    <span class="current-price text-brand">$</span><span class="current-price text-brand" id="current-product-price">{{p.price}}</span>
+                                                    <span class="current-price text-brand">$</span><span class="current-price text-brand current-price current-product-price-{{ p.id }}" id="current-product-price">{{p.price}}</span>
                                                     <span>
-                                                        <span class="save-price font-md color3 ml-15">-{{p.get_percentage|floatformat:0}}%</span>
+                                                        <span class="save-price font-md color3 ml-15">-{{p.get_percentage|floatformat:0}}% Off</span>
                                                     <span class="old-price font-md ml-15">${{p.old_price}}</span>
                                                     </span>
                                                 </div>
                                             </div>
                                             <div class="short-desc mb-30">
-                                                <p class="font-lg">{{p.description}}</p>
+                                                <p class="font-lg">{{p.description|safe|truncatechars:150}}</p>
                                             </div>
                                             {% comment %} <div class="attr-detail attr-size mb-30">
                                                 <strong class="mr-10">Size / Weight: </strong>
@@ -391,7 +391,7 @@
                                                 <div class="product-cart-wrap hover-up">
                                                     <div class="product-img-action-wrap">
                                                         <div class="product-img product-img-zoom">
-                                                            <a href="{% url 'core:product-detail' p.pid %}" tabindex="0">
+                                                            <a href="{% url 'core:product-detail' p.pid %}">
                                                                 <img class="default-img" src="{{ p.image.url }}" alt="" />
                                                                 <img class="hover-img" src="{{ p.image.url }}" alt="" />
                                                             </a>
@@ -413,6 +413,7 @@
                                                         <div class="product-price">
                                                             <span>$</span> <span class="current-price current-product-price-{{ p.id }} text-brand">{{p.price}}</span>
                                                             <span class="old-price">${{ p.old_price }}</span>
+
                                                         </div>
                                                     </div>
                                                 </div>
@@ -613,4 +614,4 @@
             </div>
         </div>
     </main>
-{% endblock %}
+{% endblock content%}
