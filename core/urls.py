@@ -18,6 +18,7 @@ from core.views import (
     add_to_cart,
     cart_view,
     update_cart,
+    checkout_view,
 )
 
 app_name = "core"
@@ -56,4 +57,7 @@ urlpatterns = [
 
     # Update cart
     path("update-cart/", update_cart, name="update-cart"),
+
+    # Checkout Page Url
+    path("checkout/", checkout_view, name="checkout")
 ]
