@@ -6,7 +6,7 @@ from taggit.managers import TaggableManager
 from django_ckeditor_5.fields import CKEditor5Field
 
 STATUS_CHOICES = (
-    ("process", "Processing"),
+    ("processing", "Processing"),
     ("shipped", "Shipped"),
     ("delivered", "Delivered"),
 )
@@ -189,12 +189,15 @@ class CartOrderItems(models.Model):
     item = models.CharField(max_length=200)
     image = models.CharField(max_length=200)
     qty = models.IntegerField(default=0)
-    price = models.DecimalField(max_digits=8, decimal_places=2, default=1.00)
-    total = models.DecimalField(max_digits=8, decimal_places=2, default=1.00)
+    price = models.DecimalField(max_digits=99999999999999, decimal_places=2, default=1.99)
+    total = models.DecimalField(max_digits=99999999999999, decimal_places=2, default=1.99)
 
     class Meta:
         verbose_name_plural = "Cart Order Items"
 
+    def category_image(self):
+        return mark_safe('<img src="%s" width="50" height="50" />' % (self.image.url))
+    
     def order_img(self):
         return mark_safe(
             '<img src="/media/%s" width="50" height="50" />' % (self.image)

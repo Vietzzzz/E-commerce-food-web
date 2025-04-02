@@ -332,5 +332,5 @@ CKEDITOR_5_CONFIGS = {
     },
 }
 
-PAYPAL_RECEIVER_EMAIL = 'businessdestiny@gmail.com'
+PAYPAL_RECEIVER_EMAIL = '22521316@gm.uit.edu.vn'
 PAYPAL_TEST = True
