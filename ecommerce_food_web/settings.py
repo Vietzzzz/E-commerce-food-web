@@ -45,9 +45,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    
     # Third party
     "taggit",
     "django_ckeditor_5",
+    
+    
+    # PayPal Integration
+    "paypal.standard.ipn",
+    
     # Custom apps
     "core",
     "userauths",
@@ -155,6 +161,8 @@ JAZZMIN_SETTINGS = {
     "site_logo": "assets/imgs/theme/loading.gif",
     "copyright": "SmartChef",
 }
+
+LOGIN_URL = "userauths:sign-in"
 
 AUTH_USER_MODEL = "userauths.User"
 
@@ -323,3 +331,6 @@ CKEDITOR_5_CONFIGS = {
         },
     },
 }
+
+PAYPAL_RECEIVER_EMAIL = 'businessdestiny@gmail.com'
+PAYPAL_TEST = True

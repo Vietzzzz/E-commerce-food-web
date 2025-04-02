@@ -1,0 +1,7 @@
+Django>=5.0
+python-dotenv
+django-jazzmin
+django-taggit
+django-ckeditor-5
+psycopg2
+Pillow 
