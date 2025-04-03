@@ -189,8 +189,8 @@ class CartOrderItems(models.Model):
     item = models.CharField(max_length=200)
     image = models.CharField(max_length=200)
     qty = models.IntegerField(default=0)
-    price = models.DecimalField(max_digits=99999999999999, decimal_places=2, default=1.99)
-    total = models.DecimalField(max_digits=99999999999999, decimal_places=2, default=1.99)
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=1.99)
+    total = models.DecimalField(max_digits=8, decimal_places=2, default=1.99)
 
     class Meta:
         verbose_name_plural = "Cart Order Items"
@@ -244,6 +244,7 @@ class wishlist(models.Model):
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     address = models.CharField(max_length=100, null=True)
+    mobile = models.CharField(max_length=300, null=True)
     status = models.BooleanField(default=False)
 
     class Meta:

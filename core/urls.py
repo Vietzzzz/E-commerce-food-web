@@ -21,6 +21,8 @@ from core.views import (
     checkout_view,
     payment_completed_view,
     payment_failed_view,
+    customer_dashboard,
+    order_detail,
 )
 
 app_name = "core"
@@ -71,4 +73,10 @@ urlpatterns = [
     
     # Payment Failed
     path("payment-failed/", payment_failed_view, name="payment-failed"),
+
+    # Dashboard URL
+    path("dashboard/", customer_dashboard, name="dashboard"),
+
+    # Order Detail URL
+    path("dashboard/order/<int:id>", order_detail, name="order-detail"),
 ]
