@@ -120,9 +120,10 @@
                                     </div>
                                     <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
                                         <div class="row">
-                                            <div
-                                                <form class="mb-4" method="POST" > {% csrf_token %}
-                                                    <div class="card-hdeader">
+                                            <div class="col-md-12">
+                                                <form class="mb-4" method="POST" action="{% url 'core:add-address' %}">
+                                                    {% csrf_token %}
+                                                    <div class="card-header">
                                                         <h5>Add Address</h5>
                                                     </div>
                                                     <div class="row">
@@ -136,7 +137,7 @@
                                                             <button type="submit" class="btn btn-fill-out submit font-weight-bold" name="submit" value="Submit">Save Address</button>
                                                         </div>
                                                     </div>
-                                                </form
+                                                </form>
                                             </div>
                                         </div>
                                             <hr>
@@ -153,9 +154,16 @@
                                                         <address>
                                                         <p>{{ a.address }}</p>
                                                         <p>{{ a.mobile }}</p>
+                                                        {% comment %} <p>{{ a.id }}</p> {% endcomment %}
                                                         </address>
-                                                        <button class="btn"> Make Default </button>
-                                                        <i class="fa fa-check-circle text-success"></i>
+                                                        <br>
+                                                        {%if a.status %}
+                                                            <i data-address-id="{{ a.id }}" class="fa fa-check-circle text-success check{{ a.id }} check"></i>
+                                                            <button data-address-id="{{ a.id }}" style="display: none;"  class="btn make-default-address button{{a.id}} action_btn "> Make Default </button>
+                                                        {%else%}
+                                                            <i data-address-id="{{ a.id }}" style="display: none;" class="fa fa-check-circle text-success check check{{ a.id }}"></i>
+                                                            <button data-address-id="{{ a.id }}" class="btn make-default-address button{{a.id}} action_btn "> Make Default </button>
+                                                        {%endif%}
                                                     </div>
                                                 </div>
                                             </div>

@@ -178,7 +178,7 @@ $(document).ready(function () {
         })
     })
 
-    $(document).on("click", '.delete-product', function() {
+    $(document).on("click", '.delete-product', function () {
 
         let product_id = $(this).attr("data-product")
         let this_val = $(this)
@@ -232,4 +232,31 @@ $(document).ready(function () {
         })
 
     })
+
+    // Making Default Address
+    $(document).on("click", ".make-default-address", function () {
+        let id = $(this).attr("data-address-id")
+        let this_val = $(this)
+
+        console.log("ID is:", id);
+        console.log("Element is:", this_val);
+
+        $.ajax({
+            url: "/make-default-address",
+            data: {
+                "id": id
+            },
+            dataType: "json",
+            success: function (response) {
+                console.log("Address made default:", response);
+                if (response.boolean == true) {
+                    $(".check").hide()
+                    $(".action_btn").show()
+
+                    $(".check" + id).show()
+                    $(".button" + id).hide()
+                }
+            }
+        });
+    });
 });
