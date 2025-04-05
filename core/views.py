@@ -398,6 +398,14 @@ def checkout_view(request):
     # for p_id, item in request.session['cart_data_obj'].items():
     # cart_total_amount += int(item['qty']) * float(item['price'])
 
+    try:
+        active_address = Address.objects.get(user=request.user, status=True)
+    except:
+        messages.warning(
+            request, "There are multiple addresses, only one can be ACTIVATED"
+        )
+        active_address = None
+
     return render(
         request,
         "core/checkout.html",
@@ -406,6 +414,7 @@ def checkout_view(request):
             "totalcartitems": len(request.session["cart_data_obj"]),
             "cart_total_amount": cart_total_amount,
             "paypal_payment_button": paypal_payment_button,
+            "active_address": active_address,
         },
     )
 
@@ -470,23 +479,3 @@ def make_address_default(request):
     Address.objects.update(status=False)
     Address.objects.filter(id=id).update(status=True)
     return JsonResponse({"boolean": True})
-
-
-@login_required
-def add_address(request):
-    if request.method == "POST":
-        address = request.POST.get("address")
-        mobile = request.POST.get("mobile")
-
-        # Create new address
-        new_address = Address.objects.create(
-            user=request.user,
-            address=address,
-            mobile=mobile,
-            status=False,  # Default to not the default address
-        )
-
-        messages.success(request, "Address added successfully")
-        return redirect("core:dashboard")
-
-    return redirect("core:dashboard")
