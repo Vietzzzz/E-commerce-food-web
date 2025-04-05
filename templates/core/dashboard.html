@@ -120,54 +120,56 @@
                                     </div>
                                     <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
                                         <div class="row">
-                                            <div
-                                                <form class="mb-4" method="POST" > {% csrf_token %}
-                                                    <div class="card-hdeader">
+                                            <div class="col-md-12">
+                                                <form class="mb-4" method="POST" action="{% url 'core:dashboard' %}">
+                                                    {% csrf_token %}
+                                                    <div class="card-header">
                                                         <h5>Add Address</h5>
                                                     </div>
                                                     <div class="row">
                                                         <div class="form-group col-md-6">
-                                                            <input placeholder="Address" required="" class="form-control" name="address" type="text" />
+                                                            {% comment %} <label>Address</label> {% endcomment %}
+                                                            <input placeholder="Enter your address" required="" class="form-control" name="address" type="text" />
                                                         </div>
                                                         <div class="form-group col-md-6">
-                                                            <input placeholder="Phone" required="" class="form-control" name="mobile" />
+                                                            {% comment %} <label>Phone Number</label> {% endcomment %}
+                                                            <input placeholder="Enter your phone number" required="" class="form-control" name="mobile" type="text" />
                                                         </div>
                                                         <div class="col-md-12">
                                                             <button type="submit" class="btn btn-fill-out submit font-weight-bold" name="submit" value="Submit">Save Address</button>
                                                         </div>
                                                     </div>
-                                                </form
+                                                </form>
                                             </div>
                                         </div>
-                                            <hr>
-                                            <br>
-                                            {% for a in address %}
-                                            <div class="col-lg-6">
-                                                <div class="card mb-3 mb-lg-0">
-                                                    <div class="card-header">
-                                                        <h4 class="mb-0">Address {{ forloop.counter }}</h4>
-                                                    </div>
+                                        <hr>
+                                        <br>
+                                        {% for a in address %}
+                                        <div class="col-lg-6">
+                                            <div class="card mb-3 mb-lg-0">
+                                                <div class="card-header">
+                                                    <h4 class="mb-0">Address {{ forloop.counter }}</h4>
+                                                </div>
 
-                                                
-                                                    <div class="card-body border rounded">
-                                                        <address>
-                                                        <p>{{ a.address }}</p>
-                                                        <p>{{ a.mobile }}</p>
-                                                        {% comment %} <p>{{ a.id }}</p> {% endcomment %}
-                                                        </address>
-                                                        <br>
-                                                        {%if a.status %}
-                                                            <i data-address-id="{{ a.id }}" class="fa fa-check-circle text-success check{{ a.id }} check"></i>
-                                                            <button data-address-id="{{ a.id }}" style="display: none;"  class="btn make-default-address button{{a.id}} action_btn "> Make Default </button>
-                                                        {%else%}
-                                                            <i data-address-id="{{ a.id }}" style="display: none;" class="fa fa-check-circle text-success check check{{ a.id }}"></i>
-                                                            <button data-address-id="{{ a.id }}" class="btn make-default-address button{{a.id}} action_btn "> Make Default </button>
-                                                        {%endif%}
-                                                    </div>
+                                            
+                                                <div class="card-body border rounded">
+                                                    <address>
+                                                    <p>{{ a.address }}</p>
+                                                    <p>{{ a.mobile }}</p>
+                                                    {% comment %} <p>{{ a.id }}</p> {% endcomment %}
+                                                    </address>
+                                                    <br>
+                                                    {%if a.status %}
+                                                        <i data-address-id="{{ a.id }}" class="fa fa-check-circle text-success check{{ a.id }} check"></i>
+                                                        <button data-address-id="{{ a.id }}" style="display: none;"  class="btn make-default-address button{{a.id}} action_btn "> Make Default </button>
+                                                    {%else%}
+                                                        <i data-address-id="{{ a.id }}" style="display: none;" class="fa fa-check-circle text-success check check{{ a.id }}"></i>
+                                                        <button data-address-id="{{ a.id }}" class="btn make-default-address button{{a.id}} action_btn "> Make Default </button>
+                                                    {%endif%}
                                                 </div>
                                             </div>
-                                            {% endfor %}
                                         </div>
+                                        {% endfor %}
                                     </div>
                                     <div class="tab-pane fade" id="account-detail" role="tabpanel" aria-labelledby="account-detail-tab">
                                         <div class="card">
