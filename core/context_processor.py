@@ -7,9 +7,10 @@ from core.models import (
     CartOrderItems,
     ProductImages,
     ProductReview,
-    wishlist,
+    Wishlist,
 )
 from django.db.models import Min, Max
+from django.contrib.messages.views import messages
 
 
 def default(request):
@@ -20,6 +21,12 @@ def default(request):
     min_max_price = Product.objects.aggregate(Min("price"), Max("price"))
 
     try:
+        wishlist = Wishlist.objects.filter(user=request.user)
+    except:
+        messages.warning(request, "You need to login first")
+        wishlist = 0
+
+    try:
         address = Address.objects.get(user=request.user)
     except:
         address = None
@@ -28,4 +35,5 @@ def default(request):
         "address": address,
         "vendors": vendors,
         "min_max_price": min_max_price,
+        "wishlist": wishlist,
     }
