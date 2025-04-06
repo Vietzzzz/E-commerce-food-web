@@ -25,6 +25,7 @@ from core.views import (
     customer_dashboard,
     order_detail,
     wishlist_view,
+    add_to_wishlist,
 )
 
 app_name = "core"
@@ -72,4 +73,6 @@ urlpatterns = [
     path("make-default-address/", make_address_default, name="make-default-address"),
     # Wishlist URL
     path("wishlist/", wishlist_view, name="wishlist"),
+    # Add to wishlist
+    path("add-to-wishlist/", add_to_wishlist, name="add-to-wishlist"),
 ]
