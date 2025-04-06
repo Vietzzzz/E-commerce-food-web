@@ -284,4 +284,29 @@ $(document).ready(function () {
             },
         })
     })
+
+
+   // Remove from delete-wishlist-product
+    $(document).on("click", ".delete-wishlist-product", function() {
+        let wishlist_id = $(this).attr("data-wishlist-product")
+        let this_val = $(this)
+
+
+
+        console.log("wishlist id is :" , wishlist_id);
+
+        $.ajax({
+            url: "/remove-from-wishlist",
+            data: {
+                "id": wishlist_id
+            },
+            dataType:"json",
+            beforeSend:function(){
+                console.log("Deleting product from wishlist...");
+            },
+            success: function(response){
+                $("#wishlist-list").html(response.data)
+            }
+        })
+    }    )
 });

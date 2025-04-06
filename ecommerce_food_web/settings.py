@@ -97,7 +97,7 @@ WSGI_APPLICATION = "ecommerce_food_web.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "django",
+        "NAME": "django", 
         "USER": "postgres",
         "PASSWORD": "1234",
         "HOST": "localhost",  # Replace with your PostgreSQL server's address if necessary

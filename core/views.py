@@ -17,11 +17,13 @@ from core.forms import ProductReviewForm
 from django.template.loader import render_to_string
 from django.contrib import messages
 
+
 from django.urls import reverse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from paypal.standard.forms import PayPalPaymentsForm
 from django.contrib.auth.decorators import login_required
+from django.core import serializers
 
 
 # Create your views here.
@@ -506,3 +508,21 @@ def add_to_wishlist(request):
         }
         
     return JsonResponse(context)
+
+
+def remove_wishlist(request): 
+    pid = request.GET['id']
+    wishlist = wishlist.objects.filter(user=request.user)
+    wishlist_d = wishlist.objects.get(id=pid)
+    delete_product = wishlist_d.delett
+
+     
+
+    context =   {
+        "bool": True,
+        "w": wishlist
+    }
+
+    wishlist_json = serializers.serialize('json', wishlist)
+    t = render_to_string("core/async/wishlist-list.html", context)
+    return JsonResponse({"data": t, 'w':wishlist_json})
