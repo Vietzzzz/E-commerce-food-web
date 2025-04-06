@@ -173,7 +173,7 @@ class CartOrder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=1.00)
     paid_status = models.BooleanField(default=False)
-    order_date = models.DateTimeField(auto_now_add=True)
+    order_date = models.DateTimeField(auto_now_add=False)
     product_status = models.CharField(
         choices=STATUS_CHOICES, max_length=30, default="processing"
     )

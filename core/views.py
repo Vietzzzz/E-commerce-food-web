@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Count, Avg
+
 from taggit.models import Tag
 from core.models import (
     Product,
@@ -23,6 +23,9 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from paypal.standard.forms import PayPalPaymentsForm
 from django.contrib.auth.decorators import login_required
+import calendar 
+from django.db.models import Count, Avg 
+from django.db.models.functions import ExtractMonth 
 from django.core import serializers
 
 
@@ -445,8 +448,19 @@ def payment_failed_view(request):
 
 @login_required
 def customer_dashboard(request):
-    orders = CartOrder.objects.filter(user=request.user).order_by("-id")
+    orders_list = CartOrder.objects.filter(user=request.user).order_by("-id")
     address = Address.objects.filter(user=request.user)
+
+    orders = CartOrder.objects.annotate(month=ExtractMonth("order_date")).values("month").annotate(count=Count("id")).values("month", "count")
+    month = [] 
+    total_orders = [] 
+
+
+    for i in orders:
+        month.append(calendar.month_name[i["month"]])
+        total_orders.append(i["count"]) 
+
+
 
     if request.method == "POST":
         address = request.POST.get("address")
@@ -454,15 +468,19 @@ def customer_dashboard(request):
 
         new_address = Address.objects.create(
             user=request.user,
+          
             address=address,
             mobile=mobile,
         )
         messages.success(request, "Address added successfully")
         return redirect("core:dashboard")
 
-    context = {
+    context = { 
         "orders": orders,
+        "orders_list": orders_list,
         "address": address,
+        "month": month,
+        "total_orders":total_orders,
     }
     return render(request, "core/dashboard.html", context)
 
