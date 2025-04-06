@@ -10,7 +10,7 @@ from core.models import (
     CartOrderItems,
     ProductImages,
     ProductReview,
-    wishlist,
+    Wishlist,
     Address,
 )
 from core.forms import ProductReviewForm
@@ -479,3 +479,13 @@ def make_address_default(request):
     Address.objects.update(status=False)
     Address.objects.filter(id=id).update(status=True)
     return JsonResponse({"boolean": True})
+
+def wishlist_view(request):
+    try:
+        wishlist = Wishlist.objects.filter(user=request.user)
+    except:
+        wishlist = None
+    context = {
+        "wishlist": wishlist,
+    }
+    return render(request, "core/wishlist.html", context)

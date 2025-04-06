@@ -7,7 +7,7 @@ from core.models import (
     CartOrderItems,
     ProductImages,
     ProductReview,
-    wishlist,
+    Wishlist,
 )
 from django.db.models import Min, Max
 
