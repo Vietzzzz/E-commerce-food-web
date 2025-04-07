@@ -13,7 +13,7 @@ from core.models import (
     Wishlist,
     Address,
 )
-from userauths.models import ContactUs
+from userauths.models import ContactUs, Profile
 from core.forms import ProductReviewForm
 from django.template.loader import render_to_string
 from django.contrib import messages
@@ -454,6 +454,9 @@ def customer_dashboard(request):
     orders_list = CartOrder.objects.filter(user=request.user).order_by("-id")
     address = Address.objects.filter(user=request.user)
 
+
+    profile = Profile.objects.get(user=request.user) 
+
     orders = CartOrder.objects.annotate(month=ExtractMonth("order_date")).values("month").annotate(count=Count("id")).values("month", "count")
     month = [] 
     total_orders = [] 
@@ -477,8 +480,15 @@ def customer_dashboard(request):
         )
         messages.success(request, "Address added successfully")
         return redirect("core:dashboard")
+    else:
+        print("Error")
+        
+
+    user_profile = Profile.objects.get(user=request.user)
+    print("user profile is: ##################", user_profile)
 
     context = { 
+        "user_profile": user_profile,
         "orders": orders,
         "orders_list": orders_list,
         "address": address,
