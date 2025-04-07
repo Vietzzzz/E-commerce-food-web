@@ -308,5 +308,10 @@ $(document).ready(function () {
                 $("#wishlist-list").html(response.data)
             }
         })
-    }    )
+    })
+
+    $(document).on("submit", "#contact-form-ajax", function () {
+        
+        console.log("Submited...");
+    })
 });

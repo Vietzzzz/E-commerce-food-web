@@ -27,6 +27,11 @@ from core.views import (
     wishlist_view,
     add_to_wishlist,
     remove_wishlist,
+    contact,
+    about_us,
+    purchase_guide,
+    privacy_policy,
+    terms_of_service,
 )
 
 app_name = "core"
@@ -76,6 +81,13 @@ urlpatterns = [
     path("wishlist/", wishlist_view, name="wishlist"),
     # Add to wishlist
     path("add-to-wishlist/", add_to_wishlist, name="add-to-wishlist"),
-    # removing to wishlist 
+    # Removing from wishlist 
     path("remove-from-wishlist/", remove_wishlist , name="remove-from-wishlist"),
+    
+    
+    path("contact/", contact, name="contact"),
+    path("about_us/", about_us, name="about_us"),
+    path("purchase_guide/", purchase_guide, name="purchase_guide"),
+    path("privacy_policy/", privacy_policy, name="privacy_policy"),
+    path("terms_of_service/", terms_of_service, name="terms_of_service"),
 ]
