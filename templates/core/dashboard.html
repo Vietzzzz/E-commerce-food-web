@@ -69,11 +69,11 @@
                                                     </div>
                                                     {% else %}
                                                     <div class="p-4 border rounded">
-                                                         <span>Not verified</span> <span> <i class="fas fa-x"><i> </span>
+                                                        <span>Not verified</span> <span> <i class="fas fa-x"></i> </span>
                                                     </div>
                                                     {% endif %}
                                                     <div class="p-4 border rounded">
-                                                        <button class="btn btn-success">Edit Profile</button>
+                                                        <a href="{%url 'userauths:profile-update'%}" class="btn btn-success">Edit Profile</a>
                                                    </div>
                                             </div>
 

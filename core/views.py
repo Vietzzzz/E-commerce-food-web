@@ -24,9 +24,9 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from paypal.standard.forms import PayPalPaymentsForm
 from django.contrib.auth.decorators import login_required
-import calendar 
-from django.db.models import Count, Avg 
-from django.db.models.functions import ExtractMonth 
+import calendar
+from django.db.models import Count, Avg
+from django.db.models.functions import ExtractMonth
 from django.core import serializers
 
 
@@ -263,8 +263,6 @@ def add_to_cart(request):
 
     if "cart_data_obj" in request.session:
         if str(request.GET["id"]) in request.session["cart_data_obj"]:
-
-            
             # Update quantity if product exists
             cart_data = request.session["cart_data_obj"]
             cart_data[str(request.GET["id"])]["qty"] = int(
@@ -454,19 +452,20 @@ def customer_dashboard(request):
     orders_list = CartOrder.objects.filter(user=request.user).order_by("-id")
     address = Address.objects.filter(user=request.user)
 
+    profile = Profile.objects.get(user=request.user)
 
-    profile = Profile.objects.get(user=request.user) 
-
-    orders = CartOrder.objects.annotate(month=ExtractMonth("order_date")).values("month").annotate(count=Count("id")).values("month", "count")
-    month = [] 
-    total_orders = [] 
-
+    orders = (
+        CartOrder.objects.annotate(month=ExtractMonth("order_date"))
+        .values("month")
+        .annotate(count=Count("id"))
+        .values("month", "count")
+    )
+    month = []
+    total_orders = []
 
     for i in orders:
         month.append(calendar.month_name[i["month"]])
-        total_orders.append(i["count"]) 
-
-
+        total_orders.append(i["count"])
 
     if request.method == "POST":
         address = request.POST.get("address")
@@ -474,7 +473,6 @@ def customer_dashboard(request):
 
         new_address = Address.objects.create(
             user=request.user,
-          
             address=address,
             mobile=mobile,
         )
@@ -482,18 +480,17 @@ def customer_dashboard(request):
         return redirect("core:dashboard")
     else:
         print("Error")
-        
 
     user_profile = Profile.objects.get(user=request.user)
     print("user profile is: ##################", user_profile)
 
-    context = { 
+    context = {
         "user_profile": user_profile,
         "orders": orders,
         "orders_list": orders_list,
         "address": address,
         "month": month,
-        "total_orders":total_orders,
+        "total_orders": total_orders,
     }
     return render(request, "core/dashboard.html", context)
 
@@ -513,6 +510,7 @@ def make_address_default(request):
     Address.objects.filter(id=id).update(status=True)
     return JsonResponse({"boolean": True})
 
+
 def wishlist_view(request):
     wishlist = Wishlist.objects.all()
     context = {
@@ -520,8 +518,9 @@ def wishlist_view(request):
     }
     return render(request, "core/wishlist.html", context)
 
+
 def add_to_wishlist(request):
-    product_id = request.GET['id']
+    product_id = request.GET["id"]
     product = Product.objects.get(id=product_id)
 
     context = {}
@@ -534,43 +533,36 @@ def add_to_wishlist(request):
         }
     else:
         new_wishlist = Wishlist.objects.create(user=request.user, product=product)
-        context = {
-            "bool": True
-        }
-        
+        context = {"bool": True}
+
     return JsonResponse(context)
 
 
-def remove_wishlist(request): 
-    pid = request.GET['id']
+def remove_wishlist(request):
+    pid = request.GET["id"]
     wishlist = wishlist.objects.filter(user=request.user)
     wishlist_d = wishlist.objects.get(id=pid)
     delete_product = wishlist_d.delett
 
-     
+    context = {"bool": True, "w": wishlist}
 
-    context =   {
-        "bool": True,
-        "w": wishlist
-    }
-
-    wishlist_json = serializers.serialize('json', wishlist)
+    wishlist_json = serializers.serialize("json", wishlist)
     t = render_to_string("core/async/wishlist-list.html", context)
-    return JsonResponse({"data": t, 'w':wishlist_json})
+    return JsonResponse({"data": t, "w": wishlist_json})
 
 
-
-# Other Pages 
+# Other Pages
 def contact(request):
     return render(request, "core/contact.html")
 
+
 def ajax_contact_form(request):
-    full_name = request.GET['full_name']
-    email = request.GET['email']
-    phone = request.GET['phone']
-    subject = request.GET['subject']
-    message = request.GET['message']
-    
+    full_name = request.GET["full_name"]
+    email = request.GET["email"]
+    phone = request.GET["phone"]
+    subject = request.GET["subject"]
+    message = request.GET["message"]
+
     contact = ContactUs.objects.create(
         full_name=full_name,
         email=email,
@@ -579,21 +571,22 @@ def ajax_contact_form(request):
         message=message,
     )
 
-    data = {
-        "bool": True,
-        "message": "Message Sent Successfully"
-    }
+    data = {"bool": True, "message": "Message Sent Successfully"}
 
-    return JsonResponse({"data":data}) 
+    return JsonResponse({"data": data})
+
 
 def about_us(request):
     return render(request, "core/about_us.html")
 
+
 def purchase_guide(request):
     return render(request, "core/purchase_guide.html")
 
+
 def privacy_policy(request):
     return render(request, "core/privacy_policy.html")
+
 
 def terms_of_service(request):
     return render(request, "core/terms_of_service.html")
