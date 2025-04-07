@@ -4,6 +4,7 @@ from . import views
 
 from core.views import (
     ajax_add_review,
+    ajax_contact_form,
     category_list_view,
     category_product_list_view,
     delete_item_from_cart,
@@ -86,6 +87,9 @@ urlpatterns = [
     
     
     path("contact/", contact, name="contact"),
+    path("ajax-contact-form/", ajax_contact_form, name="ajax-contact-form"),
+
+
     path("about_us/", about_us, name="about_us"),
     path("purchase_guide/", purchase_guide, name="purchase_guide"),
     path("privacy_policy/", privacy_policy, name="privacy_policy"),

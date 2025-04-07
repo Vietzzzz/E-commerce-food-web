@@ -13,6 +13,7 @@ from core.models import (
     Wishlist,
     Address,
 )
+from userauths.models import ContactUs
 from core.forms import ProductReviewForm
 from django.template.loader import render_to_string
 from django.contrib import messages
@@ -262,6 +263,8 @@ def add_to_cart(request):
 
     if "cart_data_obj" in request.session:
         if str(request.GET["id"]) in request.session["cart_data_obj"]:
+
+            
             # Update quantity if product exists
             cart_data = request.session["cart_data_obj"]
             cart_data[str(request.GET["id"])]["qty"] = int(
@@ -545,12 +548,33 @@ def remove_wishlist(request):
     t = render_to_string("core/async/wishlist-list.html", context)
     return JsonResponse({"data": t, 'w':wishlist_json})
 
+
+
 # Other Pages 
 def contact(request):
     return render(request, "core/contact.html")
 
 def ajax_contact_form(request):
-    pass
+    full_name = request.GET['full_name']
+    email = request.GET['email']
+    phone = request.GET['phone']
+    subject = request.GET['subject']
+    message = request.GET['message']
+    
+    contact = ContactUs.objects.create(
+        full_name=full_name,
+        email=email,
+        phone=phone,
+        subject=subject,
+        message=message,
+    )
+
+    data = {
+        "bool": True,
+        "message": "Message Sent Successfully"
+    }
+
+    return JsonResponse({"data":data}) 
 
 def about_us(request):
     return render(request, "core/about_us.html")
