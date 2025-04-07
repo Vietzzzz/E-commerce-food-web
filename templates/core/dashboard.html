@@ -51,7 +51,12 @@
                                             </div>
                                             <div class="card-body mb-2"  style="display: flex; align-items: center; gap: 10px;">
                                                 <div>
-                                                <span><img src="{{ user_profile.image.url }}" style="width: 150px; object-fit: cover; border-radius:50%; height: 150px;" alt=""></span> 
+                                                    {%if user_profile.image%}
+                                                        <span><img src="{{ user_profile.image.url }}" style="width: 150px; object-fit: cover; border-radius:50%; height: 150px;" alt=""></span> 
+                                                    {%else%}
+                                                        <span><img src="https://img.freepik.com/premium-vector/social-media-logo_1305298-29989.jpg" style="width: 150px; object-fit: cover; border-radius:50%; height: 150px;" alt=""></span> 
+
+                                                    {%endif %}
                                                 </div>
                                                 
                                                 <div>
