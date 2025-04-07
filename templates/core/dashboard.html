@@ -49,15 +49,27 @@
                                             <div class="card-header border-bottom">profile
                                                 <h3 class="mb-0">My Profile</h3>
                                             </div>
-                                            <div class="card-body mb-2">
-                                                <span><input class="mb-2" type="text" value="Name - {{ user_profile.full_name }}"></span>
-                                                <span><input class="mb-2" type="text" value="Bio - {{ user_profile.bio }}"></span>
-                                                <span><input class="mb-2" type="text" value="Phone - {{ user_profile.phone  }}"></span>
-                                                {% if user_profile.verified == True %}
-                                                 <span> <i class="fas fa-check-circle"><i> </span>
-                                                <span><input class="mb-2" type="text" value="Phone - {{ user_profile.phone  }}"></span>
-
-                                                {% endif %}
+                                            <div class="card-body mb-2"  style="display: flex; align-items: center; gap: 10px;">
+                                                <div>
+                                                <span><input src="{{ user_profile.image.url }}" style="width: 150px; object-fit: cover; border-radius:50%; height: 150px;" alt=""></span> 
+                                                </div>
+                                                
+                                                <div>
+                                                    <span><input class="mb-2" type="text" value="Name - {{ user_profile.full_name }}"></span>
+                                                    <span><input class="mb-2" type="text" value="Bio - {{ user_profile.bio }}"></span>
+                                                    <span><input class="mb-2" type="text" value="Phone - {{ user_profile.phone  }}"></span>
+                                                    {% if user_profile.verified == True %}
+                                                    <div class="p-4 border rounded">
+                                                        <span>Verified</span> <span> <i class="fas fa-check-circle"><i> </span>
+                                                    </div>
+                                                    {% else %}
+                                                    <div class="p-4 border rounded">
+                                                         <span>Not verified</span> <span> <i class="fas fa-x"><i> </span>
+                                                    </div>
+                                                    {% endif %}
+                                                    <div class="p-4 border rounded">
+                                                        <button class="btn btn-success">Edit Profile</button>
+                                                   </div>
                                             </div>
 
                                             {% comment %} <div class="mt-4 ">
