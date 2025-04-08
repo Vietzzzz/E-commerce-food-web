@@ -33,8 +33,7 @@ SECRET_KEY = "django-insecure-ww)&e2=sqc=*z-a33vj30t%h5z=@kst30@z#lx3d_pfi_dc17z
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 # Application definition
 
 INSTALLED_APPS = [

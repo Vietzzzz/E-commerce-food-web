@@ -458,20 +458,16 @@ def checkout(request, oid):
 
 
 @login_required
-def payment_completed_view(request):
-    cart_total_amount = 0
-    if "cart_data_obj" in request.session:
-        for p_id, item in request.session["cart_data_obj"].items():
-            cart_total_amount += int(item["qty"]) * float(item["price"])
-    return render(
-        request,
-        "core/payment-completed.html",
-        {
-            "cart_data": request.session["cart_data_obj"],
-            "totalcartitems": len(request.session["cart_data_obj"]),
-            "cart_total_amount": cart_total_amount,
-        },
-    )
+def payment_completed_view(request, oid):
+    order = CartOrder.objects.get(oid=oid)
+    if order.paid_status == False:
+        order.paid_status = True
+        order.save()
+
+    context = {
+        "order": order,
+    }
+    return render(request, "core/payment-completed.html", context)
 
 
 @login_required

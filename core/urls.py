@@ -2,7 +2,6 @@ from django.urls import path, include
 from . import views
 
 
-
 from core.views import (
     ajax_add_review,
     ajax_contact_form,
@@ -70,7 +69,7 @@ urlpatterns = [
     # Paypal URL
     path("paypal/", include("paypal.standard.ipn.urls")),
     # Payment Successful
-    path("payment-completed/", payment_completed_view, name="payment-completed"),
+    path("payment-completed/<oid>/", payment_completed_view, name="payment-completed"),
     # Payment Failed
     path("payment-failed/", payment_failed_view, name="payment-failed"),
     # Dashboard URL
@@ -83,20 +82,14 @@ urlpatterns = [
     path("wishlist/", wishlist_view, name="wishlist"),
     # Add to wishlist
     path("add-to-wishlist/", add_to_wishlist, name="add-to-wishlist"),
-    # Removing from wishlist 
-    path("remove-from-wishlist/", remove_wishlist , name="remove-from-wishlist"),
-    
-    
+    # Removing from wishlist
+    path("remove-from-wishlist/", remove_wishlist, name="remove-from-wishlist"),
     path("contact/", contact, name="contact"),
     path("ajax-contact-form/", ajax_contact_form, name="ajax-contact-form"),
-
-
     path("about_us/", about_us, name="about_us"),
     path("purchase_guide/", purchase_guide, name="purchase_guide"),
     path("privacy_policy/", privacy_policy, name="privacy_policy"),
     path("terms_of_service/", terms_of_service, name="terms_of_service"),
-
-
     # New routes
     path("save_checkout_info/", views.save_checkout_info, name="save_checkout_info"),
 ]
