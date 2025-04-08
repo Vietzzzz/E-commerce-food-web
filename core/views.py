@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 
 from taggit.models import Tag
 from core.models import (
+    Coupon,
     Product,
     Category,
     Vendor,
@@ -379,15 +380,15 @@ def save_checkout_info(request):
         request.session["state"] = state
         request.session["country"] = country
 
-            # Checking if cart_data_obj session exists
+        # Checking if cart_data_obj session exists
         if "cart_data_obj" in request.session:
-        # Getting total amount for Paypal Amount
+            # Getting total amount for Paypal Amount
             for p_id, item in request.session["cart_data_obj"].items():
                 total_amount += int(item["qty"]) * float(item["price"])
 
             # Create ORder Object
             order = CartOrder.objects.create(
-                user=request.user, 
+                user=request.user,
                 price=total_amount,
                 full_name=full_name,
                 email=email,
@@ -395,17 +396,16 @@ def save_checkout_info(request):
                 address=address,
                 city=city,
                 state=state,
-                country=country,)
-            
+                country=country,
+            )
 
-            del request.session["full_name"] 
-            del request.session["email"] 
-            del request.session["phone"] 
-            del request.session["address"] 
-            del request.session["city"] 
-            del request.session["state"] 
-            del request.session["country"] 
-
+            del request.session["full_name"]
+            del request.session["email"]
+            del request.session["phone"]
+            del request.session["address"]
+            del request.session["city"]
+            del request.session["state"]
+            del request.session["country"]
 
             # Getting total amount for The Cart
             for p_id, item in request.session["cart_data_obj"].items():
@@ -428,6 +428,26 @@ def save_checkout_info(request):
 def checkout(request, oid):
     order = CartOrder.objects.get(oid=oid)
     order_items = CartOrderItems.objects.filter(order=order)
+
+    if request.method == "POST":
+        code = request.POST.get("code")
+        coupon = Coupon.objects.filter(code=code, active=True).first()
+        if coupon:
+            if coupon in order.coupons.all():
+                messages.warning(request, "Coupon already applied")
+                return redirect("core:checkout", order.oid)
+            else:
+                discount = order.price * coupon.discount / 100
+                order.coupons.add(coupon)
+                order.price -= discount
+                order.saved += discount
+                order.save()
+
+                messages.success(request, "Coupon applied successfully")
+                return redirect("core:checkout", order.oid)
+        else:
+            messages.error(request, "Coupon does not exist")
+            return redirect("core:checkout", order.oid)
 
     context = {
         "order": order,

@@ -45,15 +45,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    
     # Third party
     "taggit",
     "django_ckeditor_5",
-    
-    
     # PayPal Integration
     "paypal.standard.ipn",
-    
     # Custom apps
     "core",
     "userauths",
@@ -97,11 +93,11 @@ WSGI_APPLICATION = "ecommerce_food_web.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "django", 
+        "NAME": "django",
         "USER": "postgres",
         "PASSWORD": "1234",
         "HOST": "localhost",  # Replace with your PostgreSQL server's address if necessary
-        "PORT": ""
+        "PORT": "",
     }
 }
 
@@ -332,5 +328,5 @@ CKEDITOR_5_CONFIGS = {
     },
 }
 
-PAYPAL_RECEIVER_EMAIL = '22521316@gm.uit.edu.vn'
+PAYPAL_RECEIVER_EMAIL = "22521316@gm.uit.edu.vn"
 PAYPAL_TEST = True

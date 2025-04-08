@@ -9,6 +9,7 @@ from core.models import (
     ProductImages,
     ProductReview,
     Address,
+    Coupon,
 )
 
 
@@ -97,3 +98,4 @@ admin.site.register(CartOrderItems, CartOrderItemsAdmin)
 admin.site.register(ProductReview, ProductReviewAdmin)
 admin.site.register(Wishlist, wishlistAdmin)
 admin.site.register(Address, AdressAdmin)
+admin.site.register(Coupon)
