@@ -30,6 +30,8 @@ from django.db.models import Count, Avg
 from django.db.models.functions import ExtractMonth
 from django.core import serializers
 
+import stripe
+
 
 # Create your views here.
 def index(request):
@@ -456,6 +458,14 @@ def checkout(request, oid):
 
     return render(request, "core/checkout.html", context)
 
+
+def create_checkout_session(request, oid):
+    order = CartOrder.objects.get(oid=oid)
+    stripe.api_key= settings.STRIPE_SECRET_KEY
+    
+    checkout_session = stripe.checkout.Session.create(
+        customer_email= order.email
+    )
 
 @login_required
 def payment_completed_view(request, oid):

@@ -16,6 +16,10 @@ import os
 import os
 from dotenv import load_dotenv
 
+from environs import Env
+env = Env()
+env.read_env
+
 # Tải các biến từ file .env
 load_dotenv()
 
@@ -329,3 +333,6 @@ CKEDITOR_5_CONFIGS = {
 
 PAYPAL_RECEIVER_EMAIL = "22521316@gm.uit.edu.vn"
 PAYPAL_TEST = True
+
+STRIPE_SECRET_KEY = env ("STRIPE_SECRET_KEY")
+STRIPE_PUPLIC_KEY = env ("STRIPE_PUBLIC_KEY")
