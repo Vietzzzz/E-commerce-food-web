@@ -1,7 +1,7 @@
-(function ($) {
+(function($) {
     'use strict';
     /*Product Details*/
-    var productDetails = function () {
+    var productDetails = function() {
         $('.product-image-slider').slick({
             slidesToShow: 1,
             slidesToScroll: 1,
@@ -28,13 +28,13 @@
         $('.slider-nav-thumbnails .slick-slide').eq(0).addClass('slick-active');
 
         // On before slide change match active thumbnail to current slide
-        $('.product-image-slider').on('beforeChange', function (event, slick, currentSlide, nextSlide) {
+        $('.product-image-slider').on('beforeChange', function(event, slick, currentSlide, nextSlide) {
             var mySlideNumber = nextSlide;
             $('.slider-nav-thumbnails .slick-slide').removeClass('slick-active');
             $('.slider-nav-thumbnails .slick-slide').eq(mySlideNumber).addClass('slick-active');
         });
 
-        $('.product-image-slider').on('beforeChange', function (event, slick, currentSlide, nextSlide) {
+        $('.product-image-slider').on('beforeChange', function(event, slick, currentSlide, nextSlide) {
             var img = $(slick.$slides[nextSlide]).find("img");
             $('.zoomWindowContainer,.zoomContainer').remove();
             if ($(window).width() > 768) {
@@ -58,8 +58,8 @@
             }
         }
         //Filter color/Size
-        $('.list-filter').each(function () {
-            $(this).find('a').on('click', function (event) {
+        $('.list-filter').each(function() {
+            $(this).find('a').on('click', function(event) {
                 event.preventDefault();
                 $(this).parent().siblings().removeClass('active');
                 $(this).parent().toggleClass('active');
@@ -68,16 +68,16 @@
             });
         });
         //Qty Up-Down
-        $('.detail-qty').each(function () {
+        $('.detail-qty').each(function() {
             var qtyval = parseInt($(this).find(".qty-val").val(), 10);
 
-            $('.qty-up').on('click', function (event) {
+            $('.qty-up').on('click', function(event) {
                 event.preventDefault();
                 qtyval = qtyval + 1;
                 $(this).prev().val(qtyval);
             });
 
-            $(".qty-down").on("click", function (event) {
+            $(".qty-down").on("click", function(event) {
                 event.preventDefault();
                 qtyval = qtyval - 1;
                 if (qtyval > 1) {
@@ -89,17 +89,19 @@
             });
         });
 
-        $('.dropdown-menu .cart_list').on('click', function (event) {
+        $('.dropdown-menu .cart_list').on('click', function(event) {
             event.stopPropagation();
         });
     };
 
     //Load functions
-    $(document).ready(function () {
+    $(document).ready(function() {
         productDetails();
     });
 
 })(jQuery);
+
+
 
 
 

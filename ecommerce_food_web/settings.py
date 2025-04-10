@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     # Custom apps
     "core",
     "userauths",
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [
