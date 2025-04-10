@@ -13,7 +13,6 @@ from useradmin.decorators import admin_required
 import datetime
 
 
-
 @admin_required
 def dashboard(request):
     revenue = CartOrder.objects.aggregate(price=Sum("price"))
@@ -24,9 +23,10 @@ def dashboard(request):
     latest_orders = CartOrder.objects.all()
 
     this_month = datetime.datetime.now().month
-    monthly_revenue = CartOrder.objects.filter(order_date__month=this_month).aggregate(price=Sum("price"))
+    monthly_revenue = CartOrder.objects.filter(order_date__month=this_month).aggregate(
+        price=Sum("price")
+    )
 
-    
     context = {
         "monthly_revenue": monthly_revenue,
         "revenue": revenue,
@@ -38,33 +38,34 @@ def dashboard(request):
     }
     return render(request, "useradmin/dashboard.html", context)
 
+
 @admin_required
 def products(request):
-    all_products = Product.objects.all()
+    all_products = Product.objects.all().order_by("-id")
     all_categories = Category.objects.all()
-    
+
     context = {
         "all_products": all_products,
         "all_categories": all_categories,
     }
     return render(request, "useradmin/products.html", context)
 
-# @admin_required
-# def add_product(request):
-#     if request.method == "POST":
-#         form = AddProductForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             new_form = form.save(commit=False)
-#             new_form.user = request.user
-#             new_form.save()
-#             form.save_m2m()
-#             return redirect("useradmin:dashboard-products")
-#     else:
-#         form = AddProductForm()
-#     context = {
-#         'form':form
-#     }
-#     return render(request, "useradmin/add-products.html", context)
+
+@admin_required
+def add_product(request):
+    if request.method == "POST":
+        form = AddProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_form = form.save(commit=False)
+            new_form.user = request.user
+            new_form.save()
+            form.save_m2m()
+            return redirect("useradmin:dashboard")
+    else:
+        form = AddProductForm()
+    context = {"form": form}
+    return render(request, "useradmin/add-product.html", context)
+
 
 # @admin_required
 # def edit_product(request, pid):
@@ -119,7 +120,7 @@ def products(request):
 #         messages.success(request, f"Order status changed to {status}")
 #         order.product_status = status
 #         order.save()
-    
+
 #     return redirect("useradmin:order_detail", order.id)
 
 # @admin_required
@@ -155,7 +156,7 @@ def products(request):
 #         address = request.POST.get("address")
 #         country = request.POST.get("country")
 #         print("image ===========", image)
-        
+
 #         if image != None:
 #             profile.image = image
 #         profile.full_name = full_name
@@ -167,7 +168,7 @@ def products(request):
 #         profile.save()
 #         messages.success(request, "Profile Updated Successfully")
 #         return redirect("useradmin:settings")
-    
+
 #     context = {
 #         'profile':profile,
 #     }
@@ -185,7 +186,7 @@ def products(request):
 #         if confirm_new_password != new_password:
 #             messages.error(request, "Confirm Password and New Password Does Not Match")
 #             return redirect("useradmin:change_password")
-        
+
 #         if check_password(old_password, user.password):
 #             user.set_password(new_password)
 #             user.save()
@@ -194,5 +195,5 @@ def products(request):
 #         else:
 #             messages.error(request, "Old password is not correct")
 #             return redirect("useradmin:change_password")
-    
+
 #     return render(request, "useradmin/change_password.html")
