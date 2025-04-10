@@ -38,16 +38,16 @@ def dashboard(request):
     }
     return render(request, "useradmin/dashboard.html", context)
 
-# @admin_required
-# def products(request):
-#     all_products = Product.objects.all()
-#     all_categories = Category.objects.all()
+@admin_required
+def products(request):
+    all_products = Product.objects.all()
+    all_categories = Category.objects.all()
     
-#     context = {
-#         "all_products": all_products,
-#         "all_categories": all_categories,
-#     }
-#     return render(request, "useradmin/products.html", context)
+    context = {
+        "all_products": all_products,
+        "all_categories": all_categories,
+    }
+    return render(request, "useradmin/products.html", context)
 
 # @admin_required
 # def add_product(request):
