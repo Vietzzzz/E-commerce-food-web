@@ -122,7 +122,7 @@
 
         try {
             checkoutButton.addEventListener("click", function () {
-            var email = "{{booking.email}}";
+            var email = "{{order.email}}";
 
             checkoutButton.innerHTML = "Processing <i class='fas fa-spinner fa-spin'></i>";
 
@@ -136,7 +136,7 @@
                     return response.json();
                 })
                 .then(function (session) {
-                    return stripe.redirectToCheckout({ sessionId: session.sessionId });
+                    return stripe.redirectToCheckout({ sessionId: session.session_id});
                 })
                 .then(function (result) {
                     if (result.error) {

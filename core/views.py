@@ -15,6 +15,7 @@ from core.models import (
     Address,
 )
 from userauths.models import ContactUs, Profile
+
 from core.forms import ProductReviewForm
 from django.template.loader import render_to_string
 from django.contrib import messages
@@ -29,6 +30,8 @@ import calendar
 from django.db.models import Count, Avg
 from django.db.models.functions import ExtractMonth
 from django.core import serializers
+
+import stripe
 
 
 # Create your views here.
@@ -452,9 +455,45 @@ def checkout(request, oid):
     context = {
         "order": order,
         "order_items": order_items,
+        "stripe_publishable_key": settings.STRIPE_PUBLIC_KEY,
     }
 
     return render(request, "core/checkout.html", context)
+
+
+@csrf_exempt
+def create_checkout_session(request, oid):
+    order = CartOrder.objects.get(oid=oid)
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    checkout_session = stripe.checkout.Session.create(
+        customer_email=order.email,
+        payment_method_types=["card"],
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "USD",
+                    "product_data": {
+                        "name": order.full_name,
+                    },
+                    "unit_amount": int(order.price * 100),
+                },
+                "quantity": 1,
+            }
+        ],
+        mode="payment",
+        success_url=request.build_absolute_uri(
+            reverse("core:payment-completed", args=[order.oid])
+            + "?session_id={CHECKOUT_SESSION_ID}"
+        ),
+        cancel_url=request.build_absolute_uri(reverse("core:payment-failed")),
+    )
+
+    order.paid_status = False
+    order.stripe_payment_intent = checkout_session["id"]
+    order.save()
+
+    return JsonResponse({"session_id": checkout_session.id})
 
 
 @login_required
