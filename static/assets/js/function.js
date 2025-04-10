@@ -1,65 +1,70 @@
 console.log("working fine");
 
-const monthsName = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
+const monthNames = ["Jan", "Feb", "Mar", "April", "May", "June",
+    "July", "Aug", "Sept", "Oct", "Nov", "Dec"
+];
 
 $("#commentForm").submit(function (e) {
     e.preventDefault();
 
     let dt = new Date();
-    let time = dt.getDate() + " " + monthsName[dt.getUTCMonth()] + ", " + dt.getFullYear();
+    let time = dt.getDay() + " " + monthNames[dt.getUTCMonth()] + ", " + dt.getFullYear()
 
     $.ajax({
         data: $(this).serialize(),
+
         method: $(this).attr("method"),
+
         url: $(this).attr("action"),
+
         dataType: "json",
+
         success: function (res) {
-            console.log("Comment saved to DB");
+            console.log("Comment Saved to DB...");
 
             if (res.bool == true) {
-                $("#review-res").html("Review added successfully");
-                $(".hide-comment-form").hide();
-                $(".add-review").hide();
+                $("#review-res").html("Review added successfully.")
+                $(".hide-comment-form").hide()
+                $(".add-review").hide()
 
                 let _html = '<div class="single-comment justify-content-between d-flex mb-30">'
-                _html += '<div class="user justify-content-between d-flex" >'
+                _html += '<div class="user justify-content-between d-flex">'
                 _html += '<div class="thumb text-center">'
-                _html += '<img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" alt="" />'
+                _html += '<img src="https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg" alt="" />'
                 _html += '<a href="#" class="font-heading text-brand">' + res.context.user + '</a>'
                 _html += '</div>'
 
                 _html += '<div class="desc">'
                 _html += '<div class="d-flex justify-content-between mb-10">'
                 _html += '<div class="d-flex align-items-center">'
-                _html += '<span class="font-xs text-muted">' + time + '</span>'
+                _html += '<span class="font-xs text-muted">' + time + ' </span>'
                 _html += '</div>'
 
-                for (let i = 1; i <= res.context.rating; i++) {
-                    _html += '<i class="fa fa-star text-warning"></i>'
+                for (var i = 1; i <= res.context.rating; i++) {
+                    _html += '<i class="fas fa-star text-warning"></i>';
                 }
+
 
                 _html += '</div>'
                 _html += '<p class="mb-10">' + res.context.review + '</p>'
 
                 _html += '</div>'
-                _html += '</div >'
-                _html += '</div >'
+                _html += '</div>'
+                _html += ' </div>'
 
-                // dynamically add new content to a list or container without refreshing the page
-                $(".comment-list").prepend(_html);
+                $(".comment-list").prepend(_html)
             }
 
-        },
-    });
-});
 
+        }
+    })
+})
 
 
 
 $(document).ready(function () {
     $(".filter-checkbox, #price-filter-btn").on("click", function () {
-        console.log("A checkbox have been clicked ");
+        console.log("A checkbox have been clicked");
 
         let filter_object = {}
 
@@ -71,15 +76,14 @@ $(document).ready(function () {
 
         $(".filter-checkbox").each(function () {
             let filter_value = $(this).val()
-            let filter_key = $(this).data("filter") // vendor , category
+            let filter_key = $(this).data("filter") // vendor, category
 
-            //console.log("Filter value is:", filter_value);
-            //console.log("Filter key is:", filter_key);
+            // console.log("Filter value is:", filter_value);
+            // console.log("Filter key is:", filter_key);
 
             filter_object[filter_key] = Array.from(document.querySelectorAll('input[data-filter=' + filter_key + ']:checked')).map(function (element) {
                 return element.value
             })
-
         })
         console.log("Filter Object is: ", filter_object);
         $.ajax({
@@ -90,42 +94,44 @@ $(document).ready(function () {
                 console.log("Trying to filter product...");
             },
             success: function (response) {
-                console.log(response);
-                console.log("Data filtered sucessfully...");
+                console.log(response.length);
+                console.log("Data filtred successfully...");
+                $(".totall-product").hide()
                 $("#filtered-product").html(response.data)
             }
         })
     })
-    $("#max_price").on("blur", function () {
-        let min_price = $(this).attr("min");
-        let max_price = $(this).attr("max");
-        let current_price = $(this).val();
 
-        // console.log("Current price is: ", current_price);
-        // console.log("Max price is: ", max_price);
-        // console.log("Min price is: ", min_price);
+    $("#max_price").on("blur", function () {
+        let min_price = $(this).attr("min")
+        let max_price = $(this).attr("max")
+        let current_price = $(this).val()
+
+        // console.log("Current Price is:", current_price);
+        // console.log("Max Price is:", max_price);
+        // console.log("Min Price is:", min_price);
 
         if (current_price < parseInt(min_price) || current_price > parseInt(max_price)) {
-            // console.log("Price error occured");
+            // console.log("Price Error Occured");
 
-            //  round decimal numbers to 2 decimal places
-            min_Price = Math.round(min_price * 100) / 100;
-            max_Price = Math.round(max_price * 100) / 100;
+            min_price = Math.round(min_price * 100) / 100
+            max_price = Math.round(max_price * 100) / 100
 
 
-            // console.log("Min price is: ", min_Price);
-            // console.log("Max price is: ", max_Price);
+            // console.log("Max Price is:", min_Price);
+            // console.log("Min Price is:", max_Price);
 
-            alert("Price must be between: $" + min_Price + " and $" + max_Price);
-            $(this).val(min_price);
-            $("#range").val(min_price);
+            alert("Price must between $" + min_price + ' and $' + max_price)
+            $(this).val(min_price)
+            $('#range').val(min_price)
 
-            $(this).focus(); // focus on the input field
+            $(this).focus()
 
-            return false;
+            return false
+
         }
-    });
 
+    })
 
     // Add to cart functionality
     $(".add-to-cart-btn").on("click", function () {
@@ -178,7 +184,8 @@ $(document).ready(function () {
         })
     })
 
-    $(document).on("click", '.delete-product', function () {
+
+    $(".delete-product").on("click", function () {
 
         let product_id = $(this).attr("data-product")
         let this_val = $(this)
@@ -202,6 +209,9 @@ $(document).ready(function () {
         })
 
     })
+
+
+
 
     $(".update-product").on("click", function () {
 
@@ -233,6 +243,7 @@ $(document).ready(function () {
 
     })
 
+
     // Making Default Address
     $(document).on("click", ".make-default-address", function () {
         let id = $(this).attr("data-address-id")
@@ -248,24 +259,28 @@ $(document).ready(function () {
             },
             dataType: "json",
             success: function (response) {
-                console.log("Address made default:", response);
+                console.log("Address Made Default....");
                 if (response.boolean == true) {
+
                     $(".check").hide()
                     $(".action_btn").show()
 
                     $(".check" + id).show()
                     $(".button" + id).hide()
+
                 }
             }
         })
     })
+
 
     // Adding to wishlist
     $(document).on("click", ".add-to-wishlist", function () {
         let product_id = $(this).attr("data-product-item")
         let this_val = $(this)
 
-        console.log("Product ID:", product_id);
+
+        console.log("PRoduct ID IS", product_id);
 
         $.ajax({
             url: "/add-to-wishlist",
@@ -274,45 +289,44 @@ $(document).ready(function () {
             },
             dataType: "json",
             beforeSend: function () {
-                this_val.html("<i class='fas fa-spinner fa-check'></i>");
+                console.log("Adding to wishlist...")
             },
             success: function (response) {
+                // this_val.html("✓")
+                this_val.html("<i class='fas fa-heart text-danger'></i>")
                 if (response.bool === true) {
-                    console.log("Wishlist added:", response);
-                    this_val.html("<i class='fas fa-heart' style='fill: red;'></i>");
+                    console.log("Added to wishlist...");
                 }
-            },
+            }
         })
     })
 
 
-   // Remove from delete-wishlist-product
-    $(document).on("click", ".delete-wishlist-product", function() {
+    // Remove from wishlist
+    $(document).on("click", ".delete-wishlist-product", function () {
         let wishlist_id = $(this).attr("data-wishlist-product")
         let this_val = $(this)
 
-
-
-        console.log("wishlist id is :" , wishlist_id);
+        console.log("wishlist id is:", wishlist_id);
 
         $.ajax({
             url: "/remove-from-wishlist",
             data: {
                 "id": wishlist_id
             },
-            dataType:"json",
-            beforeSend:function(){
+            dataType: "json",
+            beforeSend: function () {
                 console.log("Deleting product from wishlist...");
             },
-            success: function(response){
+            success: function (response) {
                 $("#wishlist-list").html(response.data)
             }
         })
     })
 
-    $(document).on("submit", "#contact-form-ajax", function () {
 
-        e.preventDefault() 
+    $(document).on("submit", "#contact-form-ajax", function (e) {
+        e.preventDefault()
         console.log("Submited...");
 
         let full_name = $("#full_name").val()
@@ -325,23 +339,22 @@ $(document).ready(function () {
         console.log("Email:", email);
         console.log("Phone:", phone);
         console.log("Subject:", subject);
-        console.log("Message:", message);
+        console.log("MEssage:", message);
 
         $.ajax({
             url: "/ajax-contact-form",
             data: {
                 "full_name": full_name,
                 "email": email,
-                "phone": phone,    
+                "phone": phone,
                 "subject": subject,
-                "message": message,     
-
+                "message": message,
             },
-            dataType:"json",
-            beforeSend:function(){
+            dataType: "json",
+            beforeSend: function () {
                 console.log("Sending Data to Server...");
-            }, 
-            success: function(res){
+            },
+            success: function (res) {
                 console.log("Sent Data to server!");
                 $(".contact_us_p").hide()
                 $("#contact-form-ajax").hide()
@@ -349,4 +362,51 @@ $(document).ready(function () {
             }
         })
     })
-});
+
+
+
+
+})
+
+
+
+
+
+
+
+// // Add to cart functionality
+// $(".add-to-cart-btn").on("click", function(){
+//     let quantity = $("#product-quantity").val()
+//     let product_title = $(".product-title").val()
+//     let product_id = $(".product-id").val()
+//     let product_price = $("#current-product-price").text()
+//     let this_val = $(this)
+
+
+//     console.log("Quantity:", quantity);
+//     console.log("Title:", product_title);
+//     console.log("Price:", product_price);
+//     console.log("ID:", product_id);
+//     console.log("Currrent Element:", this_val);
+
+//     $.ajax({
+//         url: '/add-to-cart',
+//         data: {
+//             'id': product_id,
+//             'qty': quantity,
+//             'title': product_title,
+//             'price': product_price,
+//         },
+//         dataType: 'json',
+//         beforeSend: function(){
+//             console.log("Adding Product to Cart...");
+//         },
+//         success: function(response){
+//             this_val.html("Item added to cart")
+//             console.log("Added Product to Cart!");
+//             $(".cart-items-count").text(response.totalcartitems)
+
+
+//         }
+//     })
+// })
