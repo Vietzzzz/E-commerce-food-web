@@ -6,6 +6,7 @@ from django.contrib.auth.hashers import check_password
 
 
 from core.models import CartOrder, CartOrderItems, Product, Category, ProductReview
+from core.models import CartOrderItems
 from userauths.models import Profile, User
 from useradmin.forms import AddProductForm
 from useradmin.decorators import admin_required
@@ -60,11 +61,66 @@ def add_product(request):
             new_form.user = request.user
             new_form.save()
             form.save_m2m()
-            return redirect("useradmin:dashboard")
+            return redirect("useradmin:products")
     else:
         form = AddProductForm()
     context = {"form": form}
     return render(request, "useradmin/add-product.html", context)
+
+
+
+
+@admin_required
+def edit_product(request, pid ):
+    product = Product.objects.get(pid = pid )
+    if request.method == "POST":
+        form = AddProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            new_form = form.save(commit=False)
+            new_form.user = request.user
+            new_form.save()
+            form.save_m2m()
+            return redirect("useradmin:edit_product", product.pid )
+    else:
+        form = AddProductForm( instance=product)
+    context = {
+        "form": form,
+        "product": product,
+         }
+    return render(request, "useradmin/edit-product.html", context)
+
+
+
+
+
+
+def delete_product(request, pid):
+    product = Product.objects.get(pid=pid)
+    product.delete()
+    return redirect("useradmin:products")
+
+
+
+
+def orders(request):
+    orders = CartOrder.objects.all()
+
+    context = {
+        "orders": orders,
+        }
+    return render(request, "useradmin/orders.html", context)
+
+
+
+def order_detail(request, id):
+    order = CartOrder.objects.get(id=id)
+    order_items = CartOrderItems.objects.filter(order = order)
+    context = { 
+        "order":order,
+        "order_items":order_items,
+    }
+    return render(request, "useradmin/order_detail.html", context )
+
 
 
 # @admin_required
