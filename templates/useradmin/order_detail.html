@@ -57,8 +57,10 @@
                                 Order Id: #{{order.oid}} <br>
                                 Order Status: {{order.product_status| title}} <br>
                                 Payment Status: 
-                                {%  if %}
-
+                                {%  if order.paid_status == true %}
+                                    Paid
+                                {% else %}
+                                    Not Paid
                                 {% endif %}
 
                             </p>
@@ -74,10 +76,10 @@
                         <div class="text">
                             <h6 class="mb-1">Deliver to</h6>
                             <p class="mb-1">
-                                Address: Main Street, 123 <br />
-                                City: Tashkent, Uzbekistan <br />
-                                State: Chicago <br />
-                                Country: United States
+                                Address: {{order.address}} <br />
+                                City: {{order.city}} <br />
+                                State: {{order.state}} <br />
+                                Country: {{order.country}}
                             </p>
                         </div>
                     </article>
@@ -98,39 +100,48 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for o in order_items   %}
                                 <tr>
                                     <td>
                                         <a class="itemside" href="#">
                                             <div class="left">
-                                                <img src="assets/imgs/items/1.jpg" width="40" height="40" class="img-xs" alt="Item" />
+                                                <img src="{{o.image}}" width="40" height="40" class="img-xs" alt="Item" />
                                             </div>
-                                            <div class="info">Haagen-Dazs Caramel Cone Ice</div>
+                                            <div class="info">{{o.title}}</div>
                                         </a>
                                     </td>
-                                    <td>$44.25</td>
-                                    <td>2</td>
-                                    <td class="text-end">$99.50</td>
+                                    <td>${{o.price}}</td>
+                                    <td>{{o.qty}}</td>
+                                    <td class="text-end">${{o.total}}</td>
                                 </tr>
-                                
+                                {% endfor %}
                                 <tr>
                                     <td colspan="4">
                                         <article class="float-end">
                                             <dl class="dlist">
-                                                <dt>Subtotal:</dt>
-                                                <dd>$973.35</dd>
+                                                <dt>Tax:</dt>
+                                                <dd>$0.00</dd>
                                             </dl>
                                             <dl class="dlist">
-                                                <dt>Shipping cost:</dt>
-                                                <dd>$10.00</dd>
+                                                <dt>Shipping</dt>
+                                                <dd>$0.00</dd>
+                                            </dl>
+                                            <dl class="dlist">
+                                                <dt>Discount</dt>
+                                                <dd>${{order.saved}}</dd>
                                             </dl>
                                             <dl class="dlist">
                                                 <dt>Grand total:</dt>
-                                                <dd><b class="h5">$983.00</b></dd>
+                                                <dd><b class="h5">${{order.price}}</b></dd>
                                             </dl>
                                             <dl class="dlist">
                                                 <dt class="text-muted">Status:</dt>
                                                 <dd>
-                                                    <span class="badge rounded-pill alert-success text-success">Payment done</span>
+                                                    <span class="badge rounded-pill alert-success text-success">{%  if order.paid_status == true %}
+                                                        Paid
+                                                    {% else %}
+                                                        Not Paid
+                                                    {% endif %}</span>
                                                 </dd>
                                             </dl>
                                         </article>
