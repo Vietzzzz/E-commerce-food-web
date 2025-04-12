@@ -68,11 +68,9 @@ def add_product(request):
     return render(request, "useradmin/add-product.html", context)
 
 
-
-
 @admin_required
-def edit_product(request, pid ):
-    product = Product.objects.get(pid = pid )
+def edit_product(request, pid):
+    product = Product.objects.get(pid=pid)
     if request.method == "POST":
         form = AddProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
@@ -80,18 +78,14 @@ def edit_product(request, pid ):
             new_form.user = request.user
             new_form.save()
             form.save_m2m()
-            return redirect("useradmin:edit_product", product.pid )
+            return redirect("useradmin:edit_product", product.pid)
     else:
-        form = AddProductForm( instance=product)
+        form = AddProductForm(instance=product)
     context = {
         "form": form,
         "product": product,
-         }
+    }
     return render(request, "useradmin/edit-product.html", context)
-
-
-
-
 
 
 def delete_product(request, pid):
@@ -100,39 +94,61 @@ def delete_product(request, pid):
     return redirect("useradmin:products")
 
 
-
-
 def orders(request):
     orders = CartOrder.objects.all()
 
     context = {
         "orders": orders,
-        }
+    }
     return render(request, "useradmin/orders.html", context)
-
 
 
 def order_detail(request, id):
     order = CartOrder.objects.get(id=id)
-    order_items = CartOrderItems.objects.filter(order = order)
-    context = { 
-        "order":order,
-        "order_items":order_items,
+    order_items = CartOrderItems.objects.filter(order=order)
+    context = {
+        "order": order,
+        "order_items": order_items,
     }
-    return render(request, "useradmin/order_detail.html", context )
+    return render(request, "useradmin/order_detail.html", context)
+
 
 @csrf_exempt
-def change_order_status(request,oid): 
+def change_order_status(request, oid):
     order = CartOrder.objects.get(oid=oid)
-    if request.method  == 'POST': 
+    if request.method == "POST":
         status = request.POST.get("status")
-        print("status =====",status)
+        print("status =====", status)
         order.product_status = status
         order.save()
         messages.success(request, f"Order status change to {status}")
 
-    return redirect('useradmin:order_detail', order.id)
+    return redirect("useradmin:order_detail", order.id)
 
+
+@admin_required
+def shop_page(request):
+    products = Product.objects.all()
+    revenue = CartOrder.objects.aggregate(price=Sum("price"))
+    total_sales = CartOrderItems.objects.filter(order__paid_status=True).aggregate(
+        qty=Sum("qty")
+    )
+
+    context = {
+        "products": products,
+        "revenue": revenue,
+        "total_sales": total_sales,
+    }
+    return render(request, "useradmin/shop_page.html", context)
+
+
+@admin_required
+def reviews(request):
+    reviews = ProductReview.objects.all()
+    context = {
+        "reviews": reviews,
+    }
+    return render(request, "useradmin/reviews.html", context)
 
 
 # @admin_required
@@ -191,26 +207,6 @@ def change_order_status(request,oid):
 
 #     return redirect("useradmin:order_detail", order.id)
 
-# @admin_required
-# def shop_page(request):
-#     products = Product.objects.filter(user=request.user)
-#     revenue = CartOrder.objects.filter(paid_status=True).aggregate(price=Sum("price"))
-#     total_sales = CartOrderItems.objects.filter(order__paid_status=True).aggregate(qty=Sum("qty"))
-
-#     context = {
-#         'products':products,
-#         'revenue':revenue,
-#         'total_sales':total_sales,
-#     }
-#     return render(request, "useradmin/shop_page.html", context)
-
-# @admin_required
-# def reviews(request):
-#     reviews = ProductReview.objects.all()
-#     context = {
-#         'reviews':reviews,
-#     }
-#     return render(request, "useradmin/reviews.html", context)
 
 # @admin_required
 # def settings(request):
