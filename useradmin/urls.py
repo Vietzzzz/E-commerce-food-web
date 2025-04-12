@@ -26,4 +26,9 @@ urlpatterns = [
         views.reviews,
         name="reviews",
     ),
+    path(
+        "settings/",
+        views.settings,
+        name="settings",
+    ),
 ]

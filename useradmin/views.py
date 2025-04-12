@@ -151,6 +151,38 @@ def reviews(request):
     return render(request, "useradmin/reviews.html", context)
 
 
+@admin_required
+def settings(request):
+    profile = Profile.objects.get(user=request.user)
+
+    if request.method == "POST":
+        image = request.FILES.get("image")
+        full_name = request.POST.get("full_name")
+        phone = request.POST.get("phone")
+        bio = request.POST.get("bio")
+        address = request.POST.get("address")
+        country = request.POST.get("country")
+        print("image ===========", image)
+
+        if image != None:
+            profile.image = image
+        profile.full_name = full_name
+        profile.phone = phone
+        profile.bio = bio
+        profile.address = address
+        profile.country = country
+
+        profile.save()
+
+        messages.success(request, "Profile Updated Successfully")
+        return redirect("useradmin:settings")
+
+    context = {
+        "profile": profile,
+    }
+    return render(request, "useradmin/settings.html", context)
+
+
 # @admin_required
 # def edit_product(request, pid):
 #     product = Product.objects.get(pid=pid)
@@ -207,36 +239,6 @@ def reviews(request):
 
 #     return redirect("useradmin:order_detail", order.id)
 
-
-# @admin_required
-# def settings(request):
-#     profile = Profile.objects.get(user=request.user)
-
-#     if request.method == "POST":
-#         image = request.FILES.get("image")
-#         full_name = request.POST.get("full_name")
-#         phone = request.POST.get("phone")
-#         bio = request.POST.get("bio")
-#         address = request.POST.get("address")
-#         country = request.POST.get("country")
-#         print("image ===========", image)
-
-#         if image != None:
-#             profile.image = image
-#         profile.full_name = full_name
-#         profile.phone = phone
-#         profile.bio = bio
-#         profile.address = address
-#         profile.country = country
-
-#         profile.save()
-#         messages.success(request, "Profile Updated Successfully")
-#         return redirect("useradmin:settings")
-
-#     context = {
-#         'profile':profile,
-#     }
-#     return render(request, "useradmin/settings.html", context)
 
 # @admin_required
 # def change_password(request):
