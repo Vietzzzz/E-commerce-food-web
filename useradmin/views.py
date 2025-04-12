@@ -3,7 +3,7 @@ from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
-
+from django.contrib import messages
 
 from core.models import CartOrder, CartOrderItems, Product, Category, ProductReview
 from core.models import CartOrderItems
@@ -120,6 +120,18 @@ def order_detail(request, id):
         "order_items":order_items,
     }
     return render(request, "useradmin/order_detail.html", context )
+
+@csrf_exempt
+def change_order_status(request,oid): 
+    order = CartOrder.objects.get(oid=oid)
+    if request.method  == 'POST': 
+        status = request.POST.get("status")
+        print("status =====",status)
+        order.product_status = status
+        order.save()
+        messages.success(request, f"Order status change to {status}")
+
+    return redirect('useradmin:order_detail', order.id)
 
 
 

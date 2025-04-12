@@ -15,14 +15,14 @@
                     <span> <i class="material-icons md-calendar_today"></i> <b>{{order.order_date}}</b> </span> <br />
                     <small class="text-muted">Order ID: {{order.oid}}</small>
                 </div>
-                <div class="col-lg-6 col-md-6 ms-auto text-md-end">
-                    <select class="form-select d-inline-block mb-lg-0 mr-5 mw-200">
+                <from method = "POST" action="{% url 'useradmin:change_order_status' order.oid %}" class="col-lg-6 col-md-6 ms-auto text-md-end">
+                    <select name="status" class="form-select d-inline-block mb-lg-0 mr-5 mw-200">
                         <option value="processing">Change Order Status</option>
                         <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
                     </select>
-                    <a class="btn btn-primary" href="#">Save</a>
+                    <button class="btn btn-primary"  type="submit">Save</button>
                 </div>
             </div>
         </header>
