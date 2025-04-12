@@ -183,6 +183,31 @@ def settings(request):
     return render(request, "useradmin/settings.html", context)
 
 
+@admin_required
+def change_password(request):
+    user = request.user
+
+    if request.method == "POST":
+        old_password = request.POST.get("old_password")
+        new_password = request.POST.get("new_password")
+        confirm_new_password = request.POST.get("confirm_new_password")
+
+        if confirm_new_password != new_password:
+            messages.error(request, "Confirm Password and New Password Does Not Match")
+            return redirect("useradmin:change_password")
+
+        if check_password(old_password, user.password):
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, "Password Changed Successfully")
+            return redirect("useradmin:change_password")
+        else:
+            messages.error(request, "Old password is not correct")
+            return redirect("useradmin:change_password")
+
+    return render(request, "useradmin/change_password.html")
+
+
 # @admin_required
 # def edit_product(request, pid):
 #     product = Product.objects.get(pid=pid)
@@ -238,28 +263,3 @@ def settings(request):
 #         order.save()
 
 #     return redirect("useradmin:order_detail", order.id)
-
-
-# @admin_required
-# def change_password(request):
-#     user = request.user
-
-#     if request.method == "POST":
-#         old_password = request.POST.get("old_password")
-#         new_password = request.POST.get("new_password")
-#         confirm_new_password = request.POST.get("confirm_new_password")
-
-#         if confirm_new_password != new_password:
-#             messages.error(request, "Confirm Password and New Password Does Not Match")
-#             return redirect("useradmin:change_password")
-
-#         if check_password(old_password, user.password):
-#             user.set_password(new_password)
-#             user.save()
-#             messages.success(request, "Password Changed Successfully")
-#             return redirect("useradmin:change_password")
-#         else:
-#             messages.error(request, "Old password is not correct")
-#             return redirect("useradmin:change_password")
-
-#     return render(request, "useradmin/change_password.html")
