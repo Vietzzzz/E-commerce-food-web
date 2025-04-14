@@ -2,134 +2,114 @@
 {% load static %}
 {% block content %}
 
-<div class="row justify-content-center pt-lg-4 text-center" style="margin-bottom: 200px; margin-top: 100px;">
+{# --- Phần xác nhận thanh toán (Giữ nguyên) --- #}
+<div class="row justify-content-center pt-lg-4 text-center" style="margin-bottom: 50px; margin-top: 100px;">
     <div class="col-lg-5 col-md-7 col-sm-9">
         <h1 class="display-404 py-lg-3">Payment Completed</h1>
-        <h2 class="h3 mb-4">Your order has been successfully placed. Order Id #2358934</h2>
+        <h2 class="h3 mb-4">Your order has been successfully placed. Order Id #2358934</h2> {# Bạn có thể thay #2358934 bằng {{ latest_order.id }} nếu bạn truyền nó từ view #}
         <p class="fs-md mb-4">
-        <a href="#">Contact us</a> if you have any issue or question
+            <a href="#">Contact us</a> if you have any issue or question
         </p>
     </div>
 </div>
 
-###########################################3
-{# --- Phần gợi ý món ăn --- #}
-<div class="container mt-5 mb-5" style="margin-bottom: 200px !important;">  {# Tăng margin-bottom để tránh bị che khuất #}
-    <hr> {# Thêm đường kẻ ngăn cách #}
-    <h2 class="mt-4">Tiện ích: Tìm món ăn theo nguyên liệu?</h2>
-    <p>Nhập các nguyên liệu bạn có (ví dụ: thịt gà, hành tây, cà chua), chúng tôi sẽ gợi ý món ăn phù hợp!</p>
+{# --- Phần gợi ý món ăn (Tự động dựa trên đơn hàng cuối) --- #}
+<div class="container mt-5 mb-5" style="margin-bottom: 200px !important;">
+    <hr>
+    {# --- Thay đổi tiêu đề và mô tả --- #}
+    <h2 class="mt-4">Gợi ý món ăn từ đơn hàng cuối của bạn:</h2>
+    <p>Dựa trên những nguyên liệu bạn vừa mua, đây là một số món ăn bạn có thể thử!</p>
+    {# --- Không còn ô nhập liệu và nút bấm nhập tay --- #}
 
-    <div class="mb-3">
-        <textarea class="form-control" id="ingredient-input" rows="3" placeholder="Nhập nguyên liệu cách nhau bởi dấu phẩy hoặc viết thành câu..."></textarea>
-    </div>
-
-    <button class="btn btn-primary" id="suggest-button">Tìm món ăn</button>
-
-    <hr class="mt-4 mb-4">
-
-    <h3>Gợi ý cho bạn:</h3>
+    {# --- Khu vực hiển thị kết quả (Giữ nguyên cấu trúc) --- #}
     <div id="recommendation-results" class="row">
         {% comment %} Kết quả gợi ý sẽ được chèn vào đây bằng JavaScript {% endcomment %}
-        <div id="loading-indicator" style="display: none;">Đang tìm kiếm...</div>
+        <div id="loading-indicator" style="display: none;">Đang tìm gợi ý...</div> {# Thay đổi text loading #}
         <div id="error-message" class="text-danger" style="display: none;"></div>
     </div>
 </div>
 
-{% comment %} Đặt đoạn script này ở cuối block content hoặc trong block javascript riêng nếu base.html có {% endcomment %}
+{% comment %} JavaScript mới để tự động gọi API gợi ý từ đơn hàng cuối {% endcomment %}
 <script>
-    // Hàm để lấy CSRF token từ cookie (Cần thiết cho Django POST request)
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
+    document.addEventListener('DOMContentLoaded', () => { // Chạy khi trang đã tải xong
+        // Lấy các element cần thiết
+        const resultsDiv = document.getElementById('recommendation-results');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessageDiv = document.getElementById('error-message');
 
-    // Lấy các element
-    const suggestButton = document.getElementById('suggest-button');
-    const ingredientInput = document.getElementById('ingredient-input');
-    const resultsDiv = document.getElementById('recommendation-results');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    const errorMessageDiv = document.getElementById('error-message');
-
-    // Thêm sự kiện click cho nút
-    suggestButton.addEventListener('click', () => {
-        const userInput = ingredientInput.value.trim();
-
-        if (!userInput) {
-            alert('Vui lòng nhập nguyên liệu bạn có.');
+        // Kiểm tra các element có tồn tại không
+        if (!resultsDiv || !loadingIndicator || !errorMessageDiv) {
+            console.error("Required elements for recommendation not found!");
             return;
         }
 
-        // Hiển thị loading, ẩn lỗi cũ và kết quả cũ
+        // Hiển thị loading ban đầu, ẩn lỗi
         loadingIndicator.style.display = 'block';
         errorMessageDiv.style.display = 'none';
-        resultsDiv.innerHTML = ''; // Xóa kết quả cũ
-         resultsDiv.appendChild(loadingIndicator); // Đưa loading vào lại
+        resultsDiv.innerHTML = ''; // Xóa nội dung cũ (nếu có)
+        resultsDiv.appendChild(loadingIndicator); // Đưa loading vào
 
-        // Gọi API backend bằng fetch
-        const apiUrl = "{% url 'core:suggest_food_api' %}"; // Đảm bảo name='suggest_food_api' đúng trong urls.py
+        // Gọi API mới (suggest_from_last_order_api) bằng phương thức GET
+        const apiUrl = "{% url 'core:suggest_from_last_order_api' %}"; // <<< Đảm bảo name='suggest_from_last_order_api' đúng trong urls.py
 
         fetch(apiUrl, {
-            method: 'POST',
+            method: 'GET', // Dùng GET
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken // Gửi CSRF token
-            },
-            body: JSON.stringify({
-                user_input: userInput,
-                top_n: 6 // Yêu cầu top 6 gợi ý (tùy chọn)
-            })
+                // Không cần 'X-CSRFToken' cho GET
+            }
+            // Không có 'body' cho GET
         })
         .then(response => {
             if (!response.ok) {
-                 return response.json().then(err => {throw new Error(err.error || 'Có lỗi xảy ra từ server.')});
+                // Nếu server trả về lỗi (404, 500, 503...)
+                return response.json().then(err => {
+                    // Cố gắng lấy thông báo lỗi từ JSON nếu có, nếu không dùng text mặc định
+                    throw new Error(err.error || err.message || `Lỗi ${response.status} từ server.`);
+                }).catch(() => {
+                    // Nếu response không phải JSON nhưng vẫn lỗi (ví dụ trang 500 HTML)
+                     throw new Error(`Lỗi ${response.status} từ server.`);
+                });
             }
-            return response.json();
+            // Nếu response OK (200)
+            return response.json(); // Chuyển đổi thành JSON
         })
         .then(data => {
-            loadingIndicator.style.display = 'none';
+            loadingIndicator.style.display = 'none'; // Ẩn loading
+            resultsDiv.innerHTML = ''; // Xóa hẳn loading indicator trước khi thêm kết quả
 
             if (data.suggestions && data.suggestions.length > 0) {
+                // Hiển thị kết quả gợi ý
                 data.suggestions.forEach(recipe => {
                     const recipeCard = `
                         <div class="col-md-4 mb-4">
                             <div class="card h-100">
                                 <img src="${recipe.image_url}" class="card-img-top" alt="${recipe.title}" style="height: 200px; object-fit: cover;">
-                                <div class="card-body">
+                                <div class="card-body d-flex flex-column"> {# Thêm flexbox để đẩy nút xuống dưới nếu cần #}
                                     <h5 class="card-title">${recipe.title}</h5>
                                     <p class="card-text">${recipe.instructions}</p>
-                                    {% comment %} <a href="/recipes/${recipe.id}/" class="btn btn-sm btn-outline-primary">Xem chi tiết</a> {% endcomment %}
+                                    {% comment %} Thêm link/nút xem chi tiết nếu bạn có trang chi tiết công thức {% endcomment %}
+                                    {% comment %} <a href="/recipes/${recipe.id}/" class="btn btn-sm btn-outline-primary mt-auto">Xem chi tiết</a> {% endcomment %}
                                 </div>
                             </div>
                         </div>
                     `;
-                    resultsDiv.innerHTML += recipeCard;
+                    resultsDiv.innerHTML += recipeCard; // Thêm thẻ card vào div kết quả
                 });
             } else {
-                 resultsDiv.innerHTML = '<p>Không tìm thấy gợi ý nào phù hợp. Hãy thử với nguyên liệu khác.</p>';
+                // Hiển thị thông báo nếu không có gợi ý
+                 resultsDiv.innerHTML = `<p>${data.message || 'Không tìm thấy gợi ý nào từ đơn hàng cuối.'}</p>`;
             }
         })
         .catch(error => {
-            loadingIndicator.style.display = 'none';
-            console.error('Error calling suggestion API:', error);
-            errorMessageDiv.textContent = 'Lỗi: ' + error.message;
+            loadingIndicator.style.display = 'none'; // Ẩn loading
+             resultsDiv.innerHTML = ''; // Xóa loading indicator
+            console.error('Error fetching suggestions from last order:', error);
+            errorMessageDiv.textContent = error.message || 'Đã xảy ra lỗi khi tải gợi ý.';
             errorMessageDiv.style.display = 'block';
-            resultsDiv.appendChild(errorMessageDiv); // Hiển thị lỗi trong khu vực kết quả
+            resultsDiv.appendChild(errorMessageDiv); // Hiển thị lỗi
         });
     });
-
 </script>
 
 {% endblock content %}
-
