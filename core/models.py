@@ -193,7 +193,11 @@ class CartOrder(models.Model):
     paid_status = models.BooleanField(default=False)
     order_date = models.DateTimeField(auto_now_add=False, default=timezone.now)
     product_status = models.CharField(
-        choices=STATUS_CHOICES, max_length=30, default="processing",null=True,blank= True
+        choices=STATUS_CHOICES,
+        max_length=30,
+        default="processing",
+        null=True,
+        blank=True,
     )
     sku = ShortUUIDField(
         null=True,
@@ -294,3 +298,36 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
+
+
+################
+class Recipe(models.Model):
+    title = models.CharField(max_length=255)
+    # Lưu nguyên liệu đã làm sạch để tìm kiếm/hiển thị nếu cần
+    cleaned_ingredients = models.TextField(blank=True, null=True)
+    instructions = models.TextField()
+    image_name = models.CharField(
+        max_length=255,
+        help_text="Just the image file name without extension, e.g., 'my-recipe-image'",
+    )
+    # Trường này RẤT QUAN TRỌNG để liên kết với vector
+    original_index = models.IntegerField(
+        unique=True, db_index=True, help_text="Original row index from the CSV file"
+    )
+
+    def __str__(self):
+        return self.title
+
+    # Thêm property để dễ lấy URL ảnh
+    @property
+    def image_url(self):
+        from django.conf import settings
+
+        if self.image_name:
+            # Giả sử ảnh nằm trong thư mục con 'food/' của STATIC_URL
+            # Ví dụ: STATIC_URL = '/static/', ảnh sẽ là /static/food/image_name.jpg
+            # Hãy điều chỉnh 'food/' nếu cần
+            return f"{settings.STATIC_URL}food/{self.image_name}.jpg"
+        return (
+            f"{settings.STATIC_URL}images/placeholder.png"  # Ảnh mặc định nếu không có
+        )
