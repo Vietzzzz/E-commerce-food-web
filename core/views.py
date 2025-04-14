@@ -33,6 +33,16 @@ from django.core import serializers
 
 import stripe
 
+#####################
+from django.views.decorators.http import require_POST
+import json
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Import các hàm/biến đã load từ apps.py
+from .apps import get_nlp_model, get_vectorizer, get_ingredient_vectors
+from .models import Recipe
+
 
 # Create your views here.
 def index(request):
@@ -657,3 +667,97 @@ def privacy_policy(request):
 
 def terms_of_service(request):
     return render(request, "core/terms_of_service.html")
+
+
+#################################################################
+# Hàm trích xuất nguyên liệu (có thể đặt ở module riêng nếu muốn)
+def extract_ingredients_from_text(text):
+    nlp = get_nlp_model()
+    if not nlp:
+        return ""
+    doc = nlp(text)
+    ingredients = [
+        token.lemma_.lower() for token in doc if token.pos_ in ["NOUN", "PROPN"]
+    ]
+    # Cân nhắc thêm bộ lọc stop words hoặc danh sách đen ở đây
+    return " ".join(list(set(ingredients)))
+
+
+@csrf_exempt  # Thêm nếu API được gọi từ JS không cùng origin và chưa xử lý CSRF token
+@require_POST  # Chỉ chấp nhận phương thức POST
+def suggest_food_api(request):
+    vectorizer = get_vectorizer()
+    ingredient_vectors = get_ingredient_vectors()
+    nlp = get_nlp_model()  # Check if models loaded
+
+    if vectorizer is None or ingredient_vectors is None or nlp is None:
+        # Log rõ hơn xem cái nào bị thiếu (giúp gỡ lỗi nếu vẫn xảy ra)
+        print(
+            f"ERROR in suggest_food_api: Models not fully loaded. "
+            f"vectorizer loaded: {vectorizer is not None}, "
+            f"ingredient_vectors loaded: {ingredient_vectors is not None}, "  # Chú ý: ingredient_vectors có thể không None nhưng vẫn lỗi nếu file hỏng
+            f"nlp loaded: {nlp is not None}"
+        )
+        return JsonResponse({"error": "Recommendation model not available"}, status=503)
+
+    try:
+        data = json.loads(request.body)
+        user_input = data.get("user_input")
+        top_n = int(data.get("top_n", 5))  # Lấy top 5 mặc định
+
+        if not user_input:
+            return JsonResponse({"error": "Missing 'user_input'"}, status=400)
+
+        extracted = extract_ingredients_from_text(user_input)
+        print(f"API Django - Extracted: {extracted}")  # Logging
+
+        if not extracted.strip():
+            return JsonResponse(
+                {"suggestions": [], "message": "Could not extract valid ingredients."}
+            )
+
+        input_vector = vectorizer.transform([extracted])
+        similarities = cosine_similarity(input_vector, ingredient_vectors).flatten()
+        # Lấy indices của N giá trị lớn nhất
+        # argsort trả về index từ thấp đến cao, [-top_n:] lấy N cuối cùng, [::-1] đảo ngược để có thứ tự từ cao xuống thấp
+        top_indices = similarities.argsort()[-top_n:][::-1]
+        top_indices_list = top_indices.tolist()  # Chuyển sang list để query DB
+
+        print(f"API Django - Top indices: {top_indices_list}")  # Logging
+
+        # Query database dùng các indices gốc
+        # Dùng __in để lấy tất cả recipe có original_index trong list
+        recipes_from_db = Recipe.objects.filter(original_index__in=top_indices_list)
+
+        # Map kết quả DB về đúng thứ tự similarity
+        # Tạo dict: {original_index: recipe_object}
+        recipe_map = {recipe.original_index: recipe for recipe in recipes_from_db}
+
+        # Sắp xếp lại theo thứ tự top_indices_list
+        ordered_recipes = [
+            recipe_map[idx] for idx in top_indices_list if idx in recipe_map
+        ]
+
+        # Tạo response JSON
+        suggestions = []
+        for recipe in ordered_recipes:
+            suggestions.append(
+                {
+                    "id": recipe.id,
+                    "title": recipe.title,
+                    "instructions": recipe.instructions[:200]
+                    + "...",  # Giới hạn độ dài instructions nếu cần
+                    "image_url": recipe.image_url,  # Sử dụng property đã tạo trong model
+                }
+            )
+
+        return JsonResponse({"suggestions": suggestions})
+
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"error": "Invalid JSON format in request body"}, status=400
+        )
+    except Exception as e:
+        print(f"Error in suggest_food_api: {e}")  # Log lỗi chi tiết ở server
+        # Có thể dùng logging của Django để ghi log tốt hơn
+        return JsonResponse({"error": "An internal error occurred"}, status=500)
