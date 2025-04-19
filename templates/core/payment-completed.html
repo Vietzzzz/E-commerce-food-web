@@ -2,10 +2,44 @@
 {% load static %}
 {% block content %}
 
-{# --- Phần xác nhận thanh toán (Giữ nguyên) --- #}
+{# --- Thêm Font Awesome để sử dụng biểu tượng dấu tích --- #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+{# --- Thêm CSS để định dạng dấu tích --- #}
+<style>
+    .payment-title {
+        display: inline-flex;
+        align-items: center;
+    }
+    .checkmark {
+        color: #28a745; /* Màu xanh lá */
+        font-size: 1.5em;
+        margin-left: 10px; /* Khoảng cách giữa chữ và dấu tích */
+    }
+
+    /* Thu nhỏ phần Recommended dishes đi 10% */
+    #recommendation-results {
+        transform: scale(0.9); /* Giảm kích thước 10% */
+        transform-origin: top center; /* Thu nhỏ từ trung tâm phía trên để giữ vị trí */
+        margin-bottom: -2rem; /* Điều chỉnh khoảng cách dưới để không bị thừa khoảng trống */
+    }
+
+    /* Làm đậm viền của các thẻ món ăn */
+    #recommendation-results .card {
+        border-width: 1px; /* Tăng độ dày viền lên 2px */
+        border-color: #C0C0C0; /* Màu viền đậm hơn để nổi bật */
+        border-radius: 8px; /* Tùy chọn: làm tròn góc viền một chút cho đẹp */
+    }
+    
+</style>
+
+{# --- Phần xác nhận thanh toán (Chỉnh sửa để thêm dấu tích) --- #}
 <div class="row justify-content-center pt-lg-4 text-center" style="margin-bottom: 50px; margin-top: 100px;">
     <div class="col-lg-5 col-md-7 col-sm-9">
-        <h1 class="display-404 py-lg-3">Payment Completed</h1>
+        <h1 class="display-404 py-lg-3 payment-title">
+            Payment Completed
+            <i class="fas fa-check-circle checkmark"></i>
+        </h1>
         <h2 class="h3 mb-4">Your order has been successfully placed. Order Id #2358934</h2> {# Bạn có thể thay #2358934 bằng {{ latest_order.id }} nếu bạn truyền nó từ view #}
         <p class="fs-md mb-4">
             <a href="#">Contact us</a> if you have any issue or question
@@ -13,12 +47,12 @@
     </div>
 </div>
 
-{# --- Phần gợi ý món ăn (Tự động dựa trên đơn hàng cuối) --- #}
+{# --- Phần gợi ý món ăn (Giữ nguyên) --- #}
 <div class="container mt-5 mb-5" style="margin-bottom: 200px !important;">
     <hr>
     {# --- Thay đổi tiêu đề và mô tả --- #}
-    <h2 class="mt-4">Gợi ý món ăn từ đơn hàng cuối của bạn:</h2>
-    <p>Dựa trên những nguyên liệu bạn vừa mua, đây là một số món ăn bạn có thể thử!</p>
+    <h2 class="mt-4">Recommended dishes:</h2>
+    <p class="h3 mb-4">Based on the ingredients you just bought, here are some dishes you can try!</p>
     {# --- Không còn ô nhập liệu và nút bấm nhập tay --- #}
 
     {# --- Khu vực hiển thị kết quả (Giữ nguyên cấu trúc) --- #}
@@ -29,7 +63,7 @@
     </div>
 </div>
 
-{% comment %} JavaScript mới để tự động gọi API gợi ý từ đơn hàng cuối {% endcomment %}
+{% comment %} JavaScript mới để tự động gọi API gợi ý từ đơn hàng cuối (Giữ nguyên) {% endcomment %}
 <script>
     document.addEventListener('DOMContentLoaded', () => { // Chạy khi trang đã tải xong
         // Lấy các element cần thiết
