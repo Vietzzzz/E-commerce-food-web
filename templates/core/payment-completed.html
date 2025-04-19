@@ -5,7 +5,7 @@
 {# --- Thêm Font Awesome để sử dụng biểu tượng dấu tích --- #}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-{# --- Thêm CSS để định dạng dấu tích --- #}
+{# --- Thêm CSS để định dạng dấu tích, nút Buy More, và bố cục mới --- #}
 <style>
     .payment-title {
         display: inline-flex;
@@ -17,131 +17,178 @@
         margin-left: 10px; /* Khoảng cách giữa chữ và dấu tích */
     }
 
+    /* Định dạng nút Buy More */
+    .buy-more-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #28a745; /* Màu xanh lá hòa hợp với checkmark */
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+        margin-top: 20px;
+    }
+    .buy-more-btn:hover {
+        background-color: #218838; /* Màu xanh đậm hơn khi hover */
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Định dạng hình ảnh phía trên Payment Completed */
+    .payment-image {
+        width: 100%; /* Giữ nguyên chiều rộng */
+        height: 160px; /* Đặt chiều cao cụ thể để cắt 1/3 */
+        margin-bottom: 20px; /* Khoảng cách giữa hình ảnh và tiêu đề */
+        object-fit: cover; /* Đảm bảo hình ảnh không bị méo */
+        object-position: bottom; /* Cắt từ trên xuống, giữ phần dưới */
+        border-radius: 10px; /* Bo góc hình ảnh */
+        border: 2px solid #D3D3D3; /* Thêm viền màu xám nhạt */
+    }
+
+    /* Container chính để bố cục dọc */
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh; /* Đảm bảo chiều cao tối thiểu bằng chiều cao màn hình */
+        margin-top: 50px;
+    }
+    .payment-section, .recommendation-section {
+        width: 100%;
+        max-width: 800px; /* Giới hạn chiều rộng để không quá dàn trải */
+        padding: 20px;
+        text-align: center;
+    }
+    .payment-section {
+        transform: scale(1.0); /* Thu nhỏ xuống 80% */
+        transform-origin: center; /* Thu nhỏ từ trung tâm */
+    }
+    .recommendation-section {
+        transform: scale(1.0); /* Thu nhỏ xuống 80% */
+        transform-origin: center; /* Thu nhỏ từ trung tâm */
+        margin-top: 0; /* Không cần dịch lên vì đã ở dưới */
+    }
+
+    /* Thụt lề cho tiêu đề và mô tả */
+    .recommendation-section h2,
+    .recommendation-section p.h3 {
+        padding-left: 2rem; /* Thụt lề tương đương 1 dấu tab */
+    }
+
     /* Thu nhỏ phần Recommended dishes đi 10% */
     #recommendation-results {
         transform: scale(0.9); /* Giảm kích thước 10% */
         transform-origin: top center; /* Thu nhỏ từ trung tâm phía trên để giữ vị trí */
-        margin-bottom: -2rem; /* Điều chỉnh khoảng cách dưới để không bị thừa khoảng trống */
+        margin-bottom: -2rem; /* Điều chỉnh khoảng cách dưới */
     }
 
     /* Làm đậm viền của các thẻ món ăn */
     #recommendation-results .card {
-        border-width: 1px; /* Tăng độ dày viền lên 2px */
-        border-color: #C0C0C0; /* Màu viền đậm hơn để nổi bật */
-        border-radius: 8px; /* Tùy chọn: làm tròn góc viền một chút cho đẹp */
+        border-width: 1px; /* Tăng độ dày viền */
+        border-color: #28a745; /* Đổi màu viền thành xanh lá */
+        border-radius: 8px; /* Làm tròn góc viền */
     }
-    
 </style>
 
-{# --- Phần xác nhận thanh toán (Chỉnh sửa để thêm dấu tích) --- #}
-<div class="row justify-content-center pt-lg-4 text-center" style="margin-bottom: 50px; margin-top: 100px;">
-    <div class="col-lg-5 col-md-7 col-sm-9">
+{# --- Container chính để bố cục dọc --- #}
+<div class="main-container">
+    {# --- Phần xác nhận thanh toán --- #}
+    <div class="payment-section">
+        {# --- Thêm hình ảnh phía trên --- #}
+        <img src="{% static 'assets/imgs/banner/Welcome to my blog! - Well and Balanced Life (1).jpg' %}" alt="Welcome Banner" class="payment-image">
         <h1 class="display-404 py-lg-3 payment-title">
             Payment Completed
             <i class="fas fa-check-circle checkmark"></i>
         </h1>
-        <h2 class="h3 mb-4">Your order has been successfully placed. Order Id #2358934</h2> {# Bạn có thể thay #2358934 bằng {{ latest_order.id }} nếu bạn truyền nó từ view #}
+        <h2 class="h3 mb-4">Your order has been successfully placed. Order Id #2358934</h2>
         <p class="fs-md mb-4">
             <a href="#">Contact us</a> if you have any issue or question
         </p>
+        {# --- Nút Buy More --- #}
+        <a href="#" class="buy-more-btn">Buy More</a>
+    </div>
+
+    {# --- Phần gợi ý món ăn --- #}
+    <div class="recommendation-section">
+        {# --- Tiêu đề và mô tả --- #}
+        <h2 class="mt-4">Recommended dishes:</h2>
+        <p class="h3 mb-4">Based on the ingredients you just bought, here are some dishes you can try!</p>
+
+        {# --- Khu vực hiển thị kết quả --- #}
+        <div id="recommendation-results" class="row">
+            {% comment %} Kết quả gợi ý sẽ được chèn vào đây bằng JavaScript {% endcomment %}
+            <div id="loading-indicator" style="display: none;">Đang tìm gợi ý...</div>
+            <div id="error-message" class="text-danger" style="display: none;"></div>
+        </div>
     </div>
 </div>
 
-{# --- Phần gợi ý món ăn (Giữ nguyên) --- #}
-<div class="container mt-5 mb-5" style="margin-bottom: 200px !important;">
-    <hr>
-    {# --- Thay đổi tiêu đề và mô tả --- #}
-    <h2 class="mt-4">Recommended dishes:</h2>
-    <p class="h3 mb-4">Based on the ingredients you just bought, here are some dishes you can try!</p>
-    {# --- Không còn ô nhập liệu và nút bấm nhập tay --- #}
-
-    {# --- Khu vực hiển thị kết quả (Giữ nguyên cấu trúc) --- #}
-    <div id="recommendation-results" class="row">
-        {% comment %} Kết quả gợi ý sẽ được chèn vào đây bằng JavaScript {% endcomment %}
-        <div id="loading-indicator" style="display: none;">Đang tìm gợi ý...</div> {# Thay đổi text loading #}
-        <div id="error-message" class="text-danger" style="display: none;"></div>
-    </div>
-</div>
-
-{% comment %} JavaScript mới để tự động gọi API gợi ý từ đơn hàng cuối (Giữ nguyên) {% endcomment %}
+{% comment %} JavaScript để tự động gọi API gợi ý từ đơn hàng cuối (Giữ nguyên) {% endcomment %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => { // Chạy khi trang đã tải xong
-        // Lấy các element cần thiết
+    document.addEventListener('DOMContentLoaded', () => {
         const resultsDiv = document.getElementById('recommendation-results');
         const loadingIndicator = document.getElementById('loading-indicator');
         const errorMessageDiv = document.getElementById('error-message');
 
-        // Kiểm tra các element có tồn tại không
         if (!resultsDiv || !loadingIndicator || !errorMessageDiv) {
             console.error("Required elements for recommendation not found!");
             return;
         }
 
-        // Hiển thị loading ban đầu, ẩn lỗi
         loadingIndicator.style.display = 'block';
         errorMessageDiv.style.display = 'none';
-        resultsDiv.innerHTML = ''; // Xóa nội dung cũ (nếu có)
-        resultsDiv.appendChild(loadingIndicator); // Đưa loading vào
+        resultsDiv.innerHTML = '';
+        resultsDiv.appendChild(loadingIndicator);
 
-        // Gọi API mới (suggest_from_last_order_api) bằng phương thức GET
-        const apiUrl = "{% url 'core:suggest_from_last_order_api' %}"; // <<< Đảm bảo name='suggest_from_last_order_api' đúng trong urls.py
+        const apiUrl = "{% url 'core:suggest_from_last_order_api' %}";
 
         fetch(apiUrl, {
-            method: 'GET', // Dùng GET
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                // Không cần 'X-CSRFToken' cho GET
             }
-            // Không có 'body' cho GET
         })
         .then(response => {
             if (!response.ok) {
-                // Nếu server trả về lỗi (404, 500, 503...)
                 return response.json().then(err => {
-                    // Cố gắng lấy thông báo lỗi từ JSON nếu có, nếu không dùng text mặc định
                     throw new Error(err.error || err.message || `Lỗi ${response.status} từ server.`);
                 }).catch(() => {
-                    // Nếu response không phải JSON nhưng vẫn lỗi (ví dụ trang 500 HTML)
-                     throw new Error(`Lỗi ${response.status} từ server.`);
+                    throw new Error(`Lỗi ${response.status} từ server.`);
                 });
             }
-            // Nếu response OK (200)
-            return response.json(); // Chuyển đổi thành JSON
+            return response.json();
         })
         .then(data => {
-            loadingIndicator.style.display = 'none'; // Ẩn loading
-            resultsDiv.innerHTML = ''; // Xóa hẳn loading indicator trước khi thêm kết quả
+            loadingIndicator.style.display = 'none';
+            resultsDiv.innerHTML = '';
 
             if (data.suggestions && data.suggestions.length > 0) {
-                // Hiển thị kết quả gợi ý
                 data.suggestions.forEach(recipe => {
                     const recipeCard = `
                         <div class="col-md-4 mb-4">
                             <div class="card h-100">
                                 <img src="${recipe.image_url}" class="card-img-top" alt="${recipe.title}" style="height: 200px; object-fit: cover;">
-                                <div class="card-body d-flex flex-column"> {# Thêm flexbox để đẩy nút xuống dưới nếu cần #}
+                                <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">${recipe.title}</h5>
                                     <p class="card-text">${recipe.instructions}</p>
-                                    {% comment %} Thêm link/nút xem chi tiết nếu bạn có trang chi tiết công thức {% endcomment %}
-                                    {% comment %} <a href="/recipes/${recipe.id}/" class="btn btn-sm btn-outline-primary mt-auto">Xem chi tiết</a> {% endcomment %}
                                 </div>
                             </div>
                         </div>
                     `;
-                    resultsDiv.innerHTML += recipeCard; // Thêm thẻ card vào div kết quả
+                    resultsDiv.innerHTML += recipeCard;
                 });
             } else {
-                // Hiển thị thông báo nếu không có gợi ý
-                 resultsDiv.innerHTML = `<p>${data.message || 'Không tìm thấy gợi ý nào từ đơn hàng cuối.'}</p>`;
+                resultsDiv.innerHTML = `<p>${data.message || 'Không tìm thấy gợi ý nào từ đơn hàng cuối.'}</p>`;
             }
         })
         .catch(error => {
-            loadingIndicator.style.display = 'none'; // Ẩn loading
-             resultsDiv.innerHTML = ''; // Xóa loading indicator
+            loadingIndicator.style.display = 'none';
+            resultsDiv.innerHTML = '';
             console.error('Error fetching suggestions from last order:', error);
             errorMessageDiv.textContent = error.message || 'Đã xảy ra lỗi khi tải gợi ý.';
             errorMessageDiv.style.display = 'block';
-            resultsDiv.appendChild(errorMessageDiv); // Hiển thị lỗi
+            resultsDiv.appendChild(errorMessageDiv);
         });
     });
 </script>
