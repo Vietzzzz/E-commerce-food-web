@@ -769,7 +769,7 @@ def terms_of_service(request):
 #         return JsonResponse({"error": "An internal error occurred"}, status=500)
 
 
-@require_GET  # Dùng GET vì không cần client gửi data
+@csrf_exempt  # Bỏ @require_GET để hỗ trợ cả GET và POST
 def suggest_from_last_order_api(request):
     vectorizer = get_vectorizer()
     ingredient_vectors = get_ingredient_vectors()
@@ -781,59 +781,64 @@ def suggest_from_last_order_api(request):
         return JsonResponse({"error": "Recommendation model not available"}, status=503)
 
     try:
-        # --- SỬA LẠI BƯỚC 2: TÌM ĐƠN HÀNG MỚI NHẤT ---
-        try:
-            # Giả định CartOrder có trường 'id' là khóa chính tự tăng
-            latest_order = CartOrder.objects.latest("id")
-            # Nếu bạn dùng trường timestamp (ví dụ: 'created_at'):
-            # latest_order = CartOrder.objects.latest('created_at')
-        except CartOrder.DoesNotExist:
-            print("[suggest_from_last_order_api] No CartOrder found in the database.")
-            return JsonResponse(
-                {"suggestions": [], "message": "Không tìm thấy đơn hàng nào."},
-                status=404,
+        if request.method == 'GET':
+            # Logic hiện có: lấy nguyên liệu từ đơn hàng cuối
+            try:
+                latest_order = CartOrder.objects.latest("id")
+            except CartOrder.DoesNotExist:
+                print("[suggest_from_last_order_api] No CartOrder found in the database.")
+                return JsonResponse(
+                    {"suggestions": [], "message": "Không tìm thấy đơn hàng nào."},
+                    status=404,
+                )
+
+            latest_order_id = latest_order.id
+            print(f"[suggest_from_last_order_api] Found latest order_id: {latest_order_id}")
+
+            items_in_order = (
+                CartOrderItems.objects.filter(order_id=latest_order_id)
+                .values_list("item", flat=True)
+                .distinct()
             )
-        # --------------------------------------------
+            ingredient_list = list(items_in_order)
 
-        latest_order_id = latest_order.id  # Lấy ID của đơn hàng mới nhất
-        print(f"[suggest_from_last_order_api] Found latest order_id: {latest_order_id}")
+        elif request.method == 'POST':
+            # Logic mới: lấy nguyên liệu từ body request
+            try:
+                data = json.loads(request.body)
+                ingredient_list = data.get('ingredients', [])
+                if not ingredient_list:
+                    print("[suggest_from_last_order_api] No ingredients provided in POST request.")
+                    return JsonResponse(
+                        {"suggestions": [], "message": "Không có nguyên liệu nào được cung cấp."},
+                        status=400,
+                    )
+            except json.JSONDecodeError:
+                print("[suggest_from_last_order_api] Invalid JSON in POST request.")
+                return JsonResponse({"error": "Dữ liệu JSON không hợp lệ."}, status=400)
 
-        # 3. Lấy tên 'item' distinct từ đơn hàng đó (DÙNG order_id)
-        items_in_order = (
-            CartOrderItems.objects.filter(order_id=latest_order_id)
-            .values_list("item", flat=True)
-            .distinct()
-        )
-        ingredient_list = list(items_in_order)
+        else:
+            return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ."}, status=405)
 
         if not ingredient_list:
-            print(
-                f"[suggest_from_last_order_api] No items found for order_id: {latest_order_id}"
-            )
+            print("[suggest_from_last_order_api] No ingredients found.")
             return JsonResponse(
-                {
-                    "suggestions": [],
-                    "message": "Không có nguyên liệu nào trong đơn hàng cuối.",
-                },
+                {"suggestions": [], "message": "Không có nguyên liệu nào để gợi ý."},
                 status=404,
             )
 
-        # 4. Ghép thành chuỗi input
+        # Ghép thành chuỗi input
         ingredient_text = ", ".join(ingredient_list)
-        print(
-            f"[suggest_from_last_order_api] Input ingredients text: {ingredient_text}"
-        )
+        print(f"[suggest_from_last_order_api] Input ingredients text: {ingredient_text}")
 
-        # 5. Sử dụng logic gợi ý cũ
-        # Cân nhắc: Có nên chạy qua extract_ingredients_from_text nữa không?
-        # Hay dùng trực tiếp ingredient_text? Thử dùng trực tiếp trước:
+        # Sử dụng logic gợi ý cũ
         extracted = ingredient_text
-        # Hoặc nếu tên item phức tạp: extracted = extract_ingredients_from_text(ingredient_text)
         print(f"[suggest_from_last_order_api] Using keywords: {extracted}")
 
         if not extracted.strip():
             return JsonResponse(
-                {"suggestions": [], "message": "Nguyên liệu từ đơn hàng không hợp lệ."}
+                {"suggestions": [], "message": "Nguyên liệu không hợp lệ."},
+                status=400,
             )
 
         input_vector = vectorizer.transform([extracted])
@@ -844,14 +849,14 @@ def suggest_from_last_order_api(request):
 
         print(f"[suggest_from_last_order_api] Top recipe indices: {top_indices_list}")
 
-        # 6. Query Recipe từ DB
+        # Query Recipe từ DB
         recipes_from_db = Recipe.objects.filter(original_index__in=top_indices_list)
         recipe_map = {recipe.original_index: recipe for recipe in recipes_from_db}
         ordered_recipes = [
             recipe_map[idx] for idx in top_indices_list if idx in recipe_map
         ]
 
-        # 7. Tạo response JSON
+        # Tạo response JSON
         suggestions = []
         for recipe in ordered_recipes:
             suggestions.append(
@@ -869,6 +874,7 @@ def suggest_from_last_order_api(request):
         print(f"Error in suggest_from_last_order_api: {e}")
         traceback.print_exc()
         return JsonResponse(
-            {"error": "An internal error occurred while suggesting from order"},
+            {"error": "Đã xảy ra lỗi nội bộ khi tạo gợi ý."},
             status=500,
         )
+  
