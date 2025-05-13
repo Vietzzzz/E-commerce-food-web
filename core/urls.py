@@ -97,4 +97,6 @@ urlpatterns = [
         views.create_checkout_session,
         name="create_checkout_session",
     ),
+    # chatbot
+    path("chatbot/", include("chatbot.urls")),
 ]
