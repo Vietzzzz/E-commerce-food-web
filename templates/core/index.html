@@ -5873,6 +5873,20 @@
                 </h4>
               </div>
             </div>
+            <!-- Thêm widget chatbot mới -->
+            <div class="sidebar-widget chatbot-widget mb-30 p-30 bg-grey border-radius-10">
+              <h5 class="section-title style-1 mb-30">Tìm nguyên liệu món ăn</h5>
+              <form id="chatbot-form" class="form-subscriber">
+                {% csrf_token %}
+                <input type="text" name="dish_name" placeholder="Nhập tên món ăn (VD: Spaghetti)" required />
+                <button class="btn btn-sm btn-default" type="submit">
+                  <i class="fi-rs-search mr-5"></i> Tìm
+                </button>
+              </form>
+              <div id="chatbot-response" class="mt-20"></div>
+            </div>
+            <!-- Kết thúc widget chatbot -->
+
           </div>
         </div>
       </div>
@@ -6383,4 +6397,33 @@
       <!--End 4 columns-->
     </main>
   
+  <script>
+      document.getElementById('chatbot-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Ngăn reload trang
+        const formData = new FormData(this);
+        const responseDiv = document.getElementById('chatbot-response');
+        
+        fetch('/chatbot/', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.ingredients) {
+            responseDiv.innerHTML = '<h6>Nguyên liệu:</h6><ul class="list-group">' + 
+              data.ingredients.map(ing => `<li class="list-group-item">${ing.trim()}</li>`).join('') + 
+              '</ul>';
+          } else {
+            responseDiv.innerHTML = `<p class="text-danger">${data.error}</p>`;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          responseDiv.innerHTML = '<p class="text-danger">Đã xảy ra lỗi. Vui lòng thử lại.</p>';
+        });
+      });
+    </script>
 {% endblock content %}

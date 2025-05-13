@@ -105,4 +105,6 @@ urlpatterns = [
         views.suggest_from_last_order_api,
         name="suggest_from_last_order_api",
     ),
+    ############################chatbot######################
+    path("chatbot/", views.chatbot, name="chatbot"),
 ]

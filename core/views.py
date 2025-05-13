@@ -46,6 +46,9 @@ from .models import CartOrderItems, Recipe, CartOrder
 # from .views import extract_ingredients_from_text
 import traceback
 
+#####################
+import difflib
+
 
 ############################
 # Hàm trích xuất nguyên liệu (có thể đặt ở module riêng nếu muốn)
@@ -872,3 +875,30 @@ def suggest_from_last_order_api(request):
             {"error": "An internal error occurred while suggesting from order"},
             status=500,
         )
+
+
+###########################################chatbot############################################
+def chatbot(request):
+    if request.method == "POST":
+        user_input = request.POST.get(
+            "dish_name", ""
+        ).lower()  # Lấy input và chuyển thành chữ thường
+        dishes = Recipe.objects.values_list(
+            "title", flat=True
+        )  # Lấy danh sách tên món ăn
+
+        # Tìm tên món ăn gần khớp nhất
+        matches = difflib.get_close_matches(
+            user_input, [d.lower() for d in dishes], n=1, cutoff=0.6
+        )
+
+        if matches:
+            closest = matches[0]
+            recipe = Recipe.objects.get(title__iexact=closest)  # Lấy thông tin món ăn
+            ingredients = recipe.cleaned_ingredients.split(
+                ","
+            )  # Tách nguyên liệu (giả sử phân cách bằng dấu phẩy)
+            return JsonResponse({"ingredients": ingredients})
+        else:
+            return JsonResponse({"error": "Xin lỗi, tôi không tìm thấy món ăn này."})
+    return JsonResponse({"error": "Phương thức không được hỗ trợ."})

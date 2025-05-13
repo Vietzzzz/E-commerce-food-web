@@ -1,0 +1,43 @@
+<!-- templates/cooking/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot Nguyên Liệu</title>
+</head>
+<body>
+    <h1>Nhập tên món ăn để nhận nguyên liệu</h1>
+    <form id="chatbot-form">
+        {% csrf_token %}
+        <input type="text" name="dish_name" placeholder="Nhập tên món ăn" required>
+        <button type="submit">Lấy nguyên liệu</button>
+    </form>
+    <div id="response"></div>
+
+    <script>
+    document.getElementById('chatbot-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Ngăn reload trang
+        const formData = new FormData(this);
+        
+        fetch('/chatbot/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const responseDiv = document.getElementById('response');
+            if (data.ingredients) {
+                responseDiv.innerHTML = '<h3>Nguyên liệu:</h3><ul>' + 
+                    data.ingredients.map(ing => `<li>${ing.trim()}</li>`).join('') + 
+                    '</ul>';
+            } else {
+                responseDiv.innerHTML = `<p>${data.error}</p>`;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+    </script>
+</body>
+</html>
