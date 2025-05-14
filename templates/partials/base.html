@@ -327,25 +327,31 @@
                 /></a>
               </div>
               <div class="header-right">
-                <div class="search-style-2">
-                  <form action="{% url 'core:search' %}" method = "GET">
-                    <select class="select-active">
-                      <option>All Categories</option>
-                      <option>Milks and Dairies</option>
-                      <option>Wines & Alcohol</option>
-                      <option>Clothing & Beauty</option>
-                      <option>Pet Foods & Toy</option>
-                      <option>Fast food</option>
-                      <option>Baking material</option>
-                      <option>Vegetables</option>
-                      <option>Fresh Seafood</option>
-                      <option>Noodles & Rice</option>
-                      <option>Ice cream</option>
-                    </select>
-                    <input type="text" placeholder="Search for items..." name = "q" />
-                    <button class= "fas fa-search " type = "submit"></button>
-                  </form>
-                </div>
+              <div class="search-style-2">
+                <form action="{% url 'core:search' %}" method="GET">
+                  <select class="select-active">
+                    <option>All Categories</option>
+                    <option>Milks and Dairies</option>
+                    <option>Wines & Alcohol</option>
+                    <option>Clothing & Beauty</option>
+                    <option>Pet Foods & Toy</option>
+                    <option>Fast food</option>
+                    <option>Baking material</option>
+                    <option>Vegetables</option>
+                    <option>Fresh Seafood</option>
+                    <option>Noodles & Rice</option>
+                    <option>Ice cream</option>
+                  </select>
+                  <input type="text" placeholder="Search for items..." name="q" />
+                  <button class="fas fa-search" type="submit"></button>
+                </form>
+              </div>
+              <div class="search-style-2"> <!-- Removed mt-2 class here -->
+                <form action="{% url 'core:dish-ingredients' %}" method="GET">
+                  <input type="text" placeholder="Search for dishes..." name="dish" />
+                  <button class="fas fa-search" type="submit"></button>
+                </form>
+              </div>
                 <div class="header-action-right">
                   <div class="header-action-2">
                     <div class="search-location">

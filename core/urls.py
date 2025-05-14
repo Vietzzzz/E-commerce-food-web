@@ -33,6 +33,8 @@ from core.views import (
     purchase_guide,
     privacy_policy,
     terms_of_service,
+    dish_ingredients_view,
+    compare_view,
 )
 
 app_name = "core"
@@ -105,4 +107,6 @@ urlpatterns = [
         views.suggest_from_last_order_api,
         name="suggest_from_last_order_api",
     ),
+    path("dish-ingredients/", dish_ingredients_view, name="dish-ingredients"),
+    path("compare/", compare_view, name="compare"),  # Thêm pattern này
 ]

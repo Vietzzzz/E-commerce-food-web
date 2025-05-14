@@ -878,3 +878,56 @@ def suggest_from_last_order_api(request):
             status=500,
         )
   
+
+
+from django.shortcuts import render
+from django.urls import reverse
+from django.db.models import Q
+from .utils import search_dish
+from .models import Product
+
+def dish_ingredients_view(request):
+    dish_name = request.GET.get('dish', '').strip()
+    if not dish_name:
+        return render(request, 'core/dish_ingredients.html', {'error': 'Please enter a dish name.'})
+    
+    # Tìm kiếm món ăn
+    result = search_dish(dish_name)
+    
+    if result:
+        # Tra cứu sản phẩm từ model Product
+        ingredient_products = []
+        missing_ingredients = []
+        for ing in result['ingredients']:
+            search_term = ing.strip().lower()
+            # Tìm kiếm linh hoạt hơn: thử nhiều biến thể của tên nguyên liệu
+            query = Q()
+            # Tìm kiếm toàn bộ tên nguyên liệu
+            query |= Q(title__icontains=search_term)
+            # Tìm kiếm từng từ trong tên nguyên liệu
+            for word in search_term.split():
+                query |= Q(title__icontains=word)
+            # Thử loại bỏ "s" ở cuối (ví dụ: "cucumbers" -> "cucumber")
+            if search_term.endswith('s'):
+                query |= Q(title__icontains=search_term[:-1])
+            
+            product = Product.objects.filter(query).first()
+            if product:
+                # Tránh trùng lặp sản phẩm nếu đã có trong danh sách
+                if product not in ingredient_products:
+                    ingredient_products.append(product)
+            else:
+                missing_ingredients.append(ing)
+        
+        return render(request, 'core/dish_ingredients.html', {
+            'dish_name': result['dish_name'],
+            'ingredient_products': ingredient_products,
+            'missing_ingredients': missing_ingredients
+        })
+    else:
+        return render(request, 'core/dish_ingredients.html', {'error': 'Dish not found.'})
+    
+
+def compare_view(request):
+    # Placeholder cho chức năng so sánh sản phẩm
+    return render(request, 'core/compare.html', {})
