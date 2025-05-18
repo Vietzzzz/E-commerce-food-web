@@ -36,4 +36,5 @@ urlpatterns = [
         views.change_password,
         name="change_password",
     ),
+    path("export-data/", views.export_data, name="export_data"),
 ]

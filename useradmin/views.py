@@ -1,17 +1,20 @@
 from django.shortcuts import render, redirect
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.contrib import messages
+import csv
+import datetime
+from django.http import HttpResponse
 
 from core.models import CartOrder, CartOrderItems, Product, Category, ProductReview
 from core.models import CartOrderItems
 from userauths.models import Profile, User
 from useradmin.forms import AddProductForm
 from useradmin.decorators import admin_required
-
-import datetime
+from useradmin.models import DashboardAnalytics
+from decimal import Decimal
 
 
 @admin_required
@@ -206,6 +209,72 @@ def change_password(request):
             return redirect("useradmin:change_password")
 
     return render(request, "useradmin/change_password.html")
+
+
+@admin_required
+def export_data(request):
+    """Export dashboard data to PostgreSQL database"""
+
+    # Create timestamp for this export batch
+    timestamp = datetime.datetime.now()
+    export_batch_id = timestamp.strftime("%Y%m%d%H%M%S")
+
+    # Export revenue data
+    revenue = CartOrder.objects.aggregate(price=Sum("price"))
+    total_revenue = revenue["price"] or Decimal("0.00")
+    DashboardAnalytics.objects.create(
+        data_type="Revenue",
+        label="Total Revenue",
+        value=total_revenue,
+    )
+
+    # Export monthly revenue
+    this_month = datetime.datetime.now().month
+    this_month_name = datetime.datetime.now().strftime("%B")
+    monthly_revenue = CartOrder.objects.filter(order_date__month=this_month).aggregate(
+        price=Sum("price")
+    )
+    monthly_value = monthly_revenue["price"] or Decimal("0.00")
+    DashboardAnalytics.objects.create(
+        data_type="Revenue",
+        label=f"{this_month_name} Revenue",
+        value=monthly_value,
+    )
+
+    # Export product counts
+    all_products = Product.objects.all()
+    DashboardAnalytics.objects.create(
+        data_type="Products", label="Total Products", count=all_products.count()
+    )
+
+    # Export category data
+    all_categories = Category.objects.all()
+    for category in all_categories:
+        product_count = Product.objects.filter(category=category).count()
+        DashboardAnalytics.objects.create(
+            data_type="Category", label=category.title, count=product_count
+        )
+
+    # Export order data
+    total_orders_count = CartOrder.objects.all().count()
+    DashboardAnalytics.objects.create(
+        data_type="Orders", label="Total Orders", count=total_orders_count
+    )
+
+    # Export order status breakdown
+    status_counts = CartOrder.objects.values("product_status").annotate(
+        count=Count("product_status")
+    )
+    for status in status_counts:
+        status_label = status["product_status"] or "Not Set"
+        DashboardAnalytics.objects.create(
+            data_type="Order Status",
+            label=status_label,
+            count=status["count"],
+        )
+
+    messages.success(request, "Dashboard data exported to database successfully!")
+    return redirect("useradmin:dashboard")
 
 
 # @admin_required

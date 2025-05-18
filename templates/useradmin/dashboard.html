@@ -10,6 +10,9 @@
         </div>
         <div>
             <a href="{% url 'useradmin:add_product' %}" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create Product</a>
+            <a href="{% url 'useradmin:export_data' %}" class="btn btn-success ms-2">
+    <i class="text-muted material-icons md-save"></i>Save Analytics to DB
+</a>
         </div>
     </div>
     <div class="row">
@@ -109,4 +112,3 @@
 </section>
 
 {% endblock content %}
-        
