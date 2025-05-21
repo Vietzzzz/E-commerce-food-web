@@ -26,7 +26,6 @@ def get_chatbot_response(request):
         try:
             data = json.loads(request.body)
             user_message_original = data.get("message", "").strip()
-            # user_message_lower = user_message_original.lower() # Không cần thiết nữa nếu không có nhận diện keyword chay
         except json.JSONDecodeError:
             return JsonResponse(
                 {"reply": "Lỗi: Dữ liệu gửi lên không hợp lệ."}, status=400
@@ -55,31 +54,63 @@ def get_chatbot_response(request):
                     bot_reply = f"Xin lỗi, tôi không tìm thấy thông tin cho món '{dish_to_search}' trong cơ sở dữ liệu của mình."
                 else:
                     bot_reply = f"Xin lỗi, tôi không tìm thấy thông tin cho món '{dish_to_search}' (được hiểu từ câu '{user_message_original}') trong cơ sở dữ liệu của mình."
-                # Optional: Ask Gemini general knowledge
-                # general_info_prompt = f"Cung cấp thông tin chung (nguyên liệu, cách làm nếu có) về món ăn '{dish_to_search}'. Nếu không biết, hãy nói không biết."
-                # gemini_general_info = get_gemini_suggestion(general_info_prompt)
-                # if gemini_general_info and "không biết" not in gemini_general_info.lower() and len(gemini_general_info) > 20:
-                #     bot_reply += f"\n\nTuy nhiên, theo kiến thức chung của AI:\n{gemini_general_info}"
 
             elif "title" in dish_details:
-                # Optional: Use Gemini to format better
-                # bot_reply = format_dish_details_with_gemini(
-                #     dish_details['title'],
-                #     dish_details['ingredients'],
-                #     dish_details['instructions']
-                # )
-                # Manual formatting:
+                # Format ingredients with line breaks
+                ingredients_text = ""
+                if "ingredients" in dish_details and dish_details["ingredients"]:
+                    # Check if ingredients is a string or a list
+                    if isinstance(dish_details["ingredients"], list):
+                        ingredients_text = "\n".join(
+                            [
+                                f"• {ingredient}"
+                                for ingredient in dish_details["ingredients"]
+                            ]
+                        )
+                    else:
+                        # Split by commas or semicolons if it's a string
+                        ingredients_list = [
+                            i.strip()
+                            for i in dish_details["ingredients"]
+                            .replace(";", ",")
+                            .split(",")
+                        ]
+                        ingredients_text = "\n".join(
+                            [
+                                f"• {ingredient}"
+                                for ingredient in ingredients_list
+                                if ingredient
+                            ]
+                        )
+
+                # Format instructions with line breaks
+                instructions_text = ""
+                if "instructions" in dish_details and dish_details["instructions"]:
+                    if isinstance(dish_details["instructions"], list):
+                        instructions_text = "\n".join(
+                            [
+                                f"{i + 1}. {step}"
+                                for i, step in enumerate(dish_details["instructions"])
+                            ]
+                        )
+                    else:
+                        # Try to identify steps by numbers or periods
+                        instructions = dish_details["instructions"]
+                        # Replace common Vietnamese step indicators
+                        for indicator in ["Bước ", "bước "]:
+                            instructions = instructions.replace(
+                                indicator, "\n" + indicator
+                            )
+                        instructions_text = instructions
+
+                # Construct the final formatted reply
                 bot_reply = (
                     f"OK bạn! Để nấu món **{dish_details['title']}**, bạn cần:\n\n"
-                    f"**Nguyên liệu:**\n{dish_details.get('ingredients', 'Chưa có thông tin')}\n\n"
-                    f"**Hướng dẫn thực hiện:**\n{dish_details.get('instructions', 'Chưa có thông tin')}"
+                    f"**Nguyên liệu:**\n{ingredients_text}\n\n"
+                    f"**Hướng dẫn thực hiện:**\n{instructions_text}"
                 )
             else:
                 bot_reply = f"Đã có lỗi xảy ra khi tìm thông tin món '{dish_to_search}'. Vui lòng thử lại."
-            # elif not bot_reply: # This was the fallback if dish_to_search was empty and bot_reply not set by vegetarian logic
-            # Now, if dish_to_search is empty, bot_reply is set directly above, so this specific elif is not needed.
-            # If dish_to_search is empty and bot_reply has already been set, we just return it.
-            pass  # bot_reply has been set if dish_to_search was initially empty
 
         return JsonResponse({"reply": bot_reply})
 

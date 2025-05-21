@@ -146,6 +146,26 @@
         border-radius: 20px;
         max-width: 70%;
         word-wrap: break-word;
+        white-space: pre-wrap;  /* Giữ nguyên các ký tự xuống dòng */
+        line-height: 1.5;  /* Tăng khoảng cách dòng */
+    }
+    
+    .message-bubble strong {
+        font-weight: bold;
+    }
+    
+    .message-bubble em {
+        font-style: italic;
+    }
+    
+    /* Định dạng cho danh sách nguyên liệu */
+    .message-bubble ul {
+        padding-left: 20px;
+        margin: 5px 0;
+    }
+    
+    .message-bubble li {
+        margin-bottom: 3px;
     }
     
     .typing-indicator span {
@@ -197,7 +217,15 @@
             messageDiv.classList.add('chat-message', sender);
             const bubbleDiv = document.createElement('div');
             bubbleDiv.classList.add('message-bubble');
-            bubbleDiv.textContent = message;
+            
+            // Xử lý định dạng markdown đơn giản
+            let formattedMessage = message
+                .replace(/\n\n/g, '<br><br>')  // Double line breaks
+                .replace(/\n/g, '<br>')  // Single line breaks
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')  // Bold text
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>');  // Italic text
+            
+            bubbleDiv.innerHTML = formattedMessage;
             messageDiv.appendChild(bubbleDiv);
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
