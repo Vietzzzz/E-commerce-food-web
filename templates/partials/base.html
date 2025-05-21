@@ -1,4 +1,4 @@
-  {% load static %}
+{% load static %}
 
   <!DOCTYPE html>
   <html class="no-js" lang="en">
@@ -1575,6 +1575,7 @@
         <script src="{% static 'assets/js/main.js' %}"></script>
         <script src="{% static 'assets/js/shop.js' %}"></script>
         <script src="{% static 'assets/js/function.js' %}"></script>
+        {% include 'partials/chatbot_widget.html' %}
       </body>
     </html>
-    
+
