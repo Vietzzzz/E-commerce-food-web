@@ -1,150 +1,242 @@
-# utils/data_loader.py (ví dụ)
-import pandas as pd
+# utils/data_loader.py
 import os
+import pandas as pd
+import re
 from django.conf import settings
-import ast
+from .gemini_client import load_dish_names
+from fuzzywuzzy import process
 
-DATASET_PATH = os.path.join(
-    settings.BASE_DIR, "data", "recipes.csv"
-)  # Điều chỉnh tên file nếu cần
-
+DATASET_PATH = os.path.join(settings.BASE_DIR, "data", "recipes.csv")
 df_recipes = None
 
 
 def load_recipes_data():
+    """Tải dữ liệu từ file CSV"""
+    global df_recipes
     try:
-        DATASET_PATH = os.path.join(
-            settings.BASE_DIR, "data", "recipes.csv"
-        )  # Điều chỉnh tên file nếu cần
-        df = pd.read_csv(DATASET_PATH)
-        # Tiền xử lý nếu cần, ví dụ:
-        # df.rename(columns={'Tên Cột Món Ăn CSV': 'Title',
-        #                    'Tên Cột Nguyên Liệu CSV': 'Cleaned_Ingredients',
-        #                    'Tên Cột Hướng Dẫn CSV': 'Instructions'}, # THAY TÊN CỘT HƯỚNG DẪN Ở ĐÂY
-        #           inplace=True)
+        # Try different encodings if needed
+        try:
+            df_recipes = pd.read_csv(DATASET_PATH)
+        except UnicodeDecodeError:
+            df_recipes = pd.read_csv(DATASET_PATH, encoding="latin1")
+            print("Sử dụng encoding latin1 cho CSV")
 
-        # Đảm bảo cột Instructions là chuỗi (nếu có thể là số hoặc NaN)
-        if "Instructions" in df.columns:  # THAY 'Instructions' BẰNG TÊN CỘT THỰC TẾ
-            df["Instructions"] = (
-                df["Instructions"].astype(str).fillna("Không có hướng dẫn chi tiết.")
-            )
-        else:
-            print("CẢNH BÁO: Không tìm thấy cột 'Instructions' trong dataset.")
-            df["Instructions"] = (
-                "Không có hướng dẫn chi tiết."  # Cung cấp giá trị mặc định
-            )
+        print(f"Đã tải dữ liệu từ {DATASET_PATH}: {len(df_recipes)} món ăn")
+        print(f"Columns in CSV: {', '.join(df_recipes.columns)}")
 
-        # Tương tự cho cột Cleaned_Ingredients
-        if "Cleaned_Ingredients" in df.columns:
-            df["Cleaned_Ingredients"] = (
-                df["Cleaned_Ingredients"]
-                .astype(str)
-                .fillna("Không có thông tin nguyên liệu.")
-            )
-        else:
-            print("CẢNH BÁO: Không tìm thấy cột 'Cleaned_Ingredients' trong dataset.")
-            df["Cleaned_Ingredients"] = "Không có thông tin nguyên liệu."
+        # Map column names to standardized names (case insensitive)
+        column_mapping = {
+            "title": [
+                "title",
+                "Title",
+                "TÊN MÓN",
+                "name",
+                "dish_name",
+                "ten",
+            ],
+            "ingredients": [
+                "ingredients",
+                "Ingredients",
+                "NGUYÊN LIỆU",
+                "Cleaned_Ingredients",
+            ],
+            "instructions": [
+                "instructions",
+                "Instructions",
+                "CÁCH LÀM",
+                "steps",
+            ],
+        }
 
-        # Nếu bạn có cột Is_Vegetarian (TRUE/FALSE hoặc 1/0)
-        # if 'Is_Vegetarian' in df.columns: # THAY 'Is_Vegetarian' BẰNG TÊN CỘT THỰC TẾ
-        #     # Chuyển đổi sang kiểu boolean nếu cần (ví dụ nếu nó là 0/1 hoặc chuỗi 'True'/'False')
-        #     # df['Is_Vegetarian'] = df['Is_Vegetarian'].replace({1: True, 0: False, '1': True, '0': False, 'TRUE': True, 'FALSE': False})
-        #     # df['Is_Vegetarian'] = df['Is_Vegetarian'].astype(bool)
-        #     pass # Để đó xử lý ở hàm tìm món chay
-        # else:
-        #     print("CẢNH BÁO: Không tìm thấy cột 'Is_Vegetarian' hoặc cột tương tự để xác định món chay.")
+        # Find the appropriate columns in the dataset
+        actual_columns = {}
+        for std_col, possible_names in column_mapping.items():
+            for col_name in possible_names:
+                if col_name in df_recipes.columns:
+                    actual_columns[std_col] = col_name
+                    print(f"Đã tìm thấy cột {std_col}: {col_name}")
+                    break
 
-        return df
+            if std_col not in actual_columns:
+                print(f"Cảnh báo: Không tìm thấy cột {std_col} trong CSV")
+
+        # Check if we found the title column
+        if "title" not in actual_columns:
+            print("Lỗi: Không tìm được cột tên món ăn. Không thể tiếp tục.")
+            return None
+
+        # Rename columns for easier access
+        df_recipes = df_recipes.rename(
+            columns={
+                actual_columns.get("title"): "title",
+                actual_columns.get("ingredients", "ingredients"): "ingredients",
+                actual_columns.get("instructions", "instructions"): "instructions",
+            }
+        )
+
+        # Drop any empty rows in the title column
+        df_recipes = df_recipes.dropna(subset=["title"])
+        df_recipes = df_recipes[df_recipes["title"].astype(str).str.strip() != ""]
+
+        # Ensure all columns are strings
+        for col in ["title", "ingredients", "instructions"]:
+            if col in df_recipes.columns:
+                df_recipes[col] = df_recipes[col].astype(str)
+
+        # Create a list of dish names
+        all_dish_names = df_recipes["title"].tolist()
+
+        # Show some sample data
+        print(f"Sample dish names: {all_dish_names[:5]}")
+        print(f"Total dishes after cleaning: {len(all_dish_names)}")
+
+        # Load dish names into memory
+        load_dish_names(all_dish_names)
+        return df_recipes
+
     except FileNotFoundError:
-        print(f"Lỗi: Không tìm thấy file dataset.")
+        print(f"Không tìm thấy file dữ liệu tại {DATASET_PATH}")
         return None
     except Exception as e:
-        print(f"Lỗi khi tải dataset: {e}")
+        print(f"Lỗi khi tải dữ liệu: {str(e)}")
+        import traceback
+
+        print(traceback.format_exc())
         return None
 
 
-def get_dish_details(dish_name):  # Đổi tên hàm để rõ ràng hơn
+def get_dish_details(dish_name):
+    """Lấy thông tin chi tiết về món ăn từ tên món"""
+    global df_recipes
+
     if df_recipes is None:
-        return {"error": "Xin lỗi, tôi không thể truy cập dữ liệu món ăn vào lúc này."}
+        df_recipes = load_recipes_data()
+        if df_recipes is None:
+            return {"error": "Không thể tải dữ liệu món ăn"}
 
-    dish_name_lower = dish_name.lower().strip()
-    # THAY 'Title' BẰNG TÊN CỘT MÓN ĂN THỰC TẾ CỦA BẠN
-    result = df_recipes[df_recipes["Title"].str.strip().str.lower() == dish_name_lower]
+    try:
+        # Clean input dish name
+        dish_name_lower = dish_name.lower().strip()
 
-    if not result.empty:
-        dish_data = result.iloc[0]
-        dish_title = dish_data["Title"]  # Lấy tên món ăn chính xác từ dataset
+        # Direct matching (không phân biệt hoa thường)
+        matching_dishes = df_recipes[df_recipes["title"].str.lower() == dish_name_lower]
 
-        # THAY 'Cleaned_Ingredients' BẰNG TÊN CỘT NGUYÊN LIỆU THỰC TẾ
-        ingredients_str = dish_data.get(
-            "Cleaned_Ingredients", "Không có thông tin nguyên liệu."
+        # If direct match failed, try fuzzy matching
+        if matching_dishes.empty:
+            print(
+                f"Không tìm thấy món '{dish_name_lower}' bằng so khớp chính xác, thử fuzzy matching"
+            )
+            return find_dish_fuzzy(dish_name)
+
+        # Lấy thông tin của món đầu tiên tìm thấy
+        dish = matching_dishes.iloc[0]
+
+        result = {"title": dish["title"]}
+
+        if "ingredients" in df_recipes.columns:
+            result["ingredients"] = dish["ingredients"]
+
+        if "instructions" in df_recipes.columns:
+            result["instructions"] = dish["instructions"]
+
+        return result
+
+    except Exception as e:
+        import traceback
+
+        print(f"Lỗi khi tìm thông tin món ăn: {str(e)}")
+        print(traceback.format_exc())
+        return {"error": f"Lỗi khi tìm thông tin món ăn: {str(e)}"}
+
+
+def find_dish_fuzzy(dish_name, threshold=70):
+    """
+    Tìm món ăn bằng fuzzy matching
+    """
+    global df_recipes
+
+    try:
+        # Clean input dish name
+        dish_name_clean = dish_name.lower().strip()
+
+        # Get all dish names
+        all_dishes = df_recipes["title"].tolist()
+
+        # Find the best match
+        match_result = process.extractOne(
+            dish_name_clean, [d.lower() for d in all_dishes]
         )
-        # THAY 'Instructions' BẰNG TÊN CỘT HƯỚNG DẪN THỰC TẾ
-        instructions_str = dish_data.get("Instructions", "Không có hướng dẫn chi tiết.")
+        if not match_result:
+            return {"not_found": True}
 
-        # Xử lý chuỗi nguyên liệu (tùy thuộc vào định dạng trong CSV)
-        try:
-            # Nếu nó là một chuỗi dạng list: "['item1', 'item2']"
-            cleaned_ingredients_list = ast.literal_eval(ingredients_str)
-            if isinstance(cleaned_ingredients_list, list):
-                ingredients_text = ", ".join(cleaned_ingredients_list)
-            else:  # Nếu không phải list thì dùng chuỗi gốc
-                ingredients_text = (
-                    ingredients_str.replace("[", "")
-                    .replace("]", "")
-                    .replace('"', "")
-                    .replace("'", "")
-                )
-        except (ValueError, SyntaxError):
-            # Nếu là chuỗi phân cách bằng dấu phẩy hoặc dạng khác không phải list chuẩn
-            ingredients_text = (
-                ingredients_str.replace("[", "")
-                .replace("]", "")
-                .replace('"', "")
-                .replace("'", "")
+        match, score = match_result
+
+        print(f"Fuzzy match: '{dish_name}' -> '{match}' (score: {score})")
+
+        if score >= threshold:
+            # Find the index of the match in our list
+            match_index = [d.lower() for d in all_dishes].index(match)
+            # Get the original dish name with proper casing
+            original_match = all_dishes[match_index]
+
+            # Find this dish in the dataframe
+            dish = df_recipes.iloc[match_index]
+
+            result = {"title": original_match}
+
+            if "ingredients" in df_recipes.columns:
+                result["ingredients"] = dish["ingredients"]
+
+            if "instructions" in df_recipes.columns:
+                result["instructions"] = dish["instructions"]
+
+            return result
+        else:
+            return {"not_found": True}
+    except Exception as e:
+        import traceback
+
+        print(f"Lỗi trong fuzzy matching: {str(e)}")
+        print(traceback.format_exc())
+        return {"error": f"Lỗi trong fuzzy matching: {str(e)}"}
+
+
+# Add a function to preview actual data
+def preview_data():
+    global df_recipes
+
+    if df_recipes is None:
+        df_recipes = load_recipes_data()
+        if df_recipes is None:
+            print("Không thể tải dữ liệu để xem trước")
+            return
+
+    print("\n=== PREVIEW OF RECIPE DATA ===")
+    # Display first few rows with specific columns
+    cols_to_show = ["title"]
+    cols_to_show.extend(
+        [c for c in ["ingredients", "instructions"] if c in df_recipes.columns]
+    )
+
+    sample_data = df_recipes[cols_to_show].head()
+    for idx, row in sample_data.iterrows():
+        print(f"\nMón #{idx + 1}: {row['title']}")
+        if "ingredients" in cols_to_show:
+            print(
+                f"Nguyên liệu: {row['ingredients'][:100]}..."
+                if len(row["ingredients"]) > 100
+                else row["ingredients"]
+            )
+        if "instructions" in cols_to_show:
+            print(
+                f"Hướng dẫn: {row['instructions'][:100]}..."
+                if len(row["instructions"]) > 100
+                else row["instructions"]
             )
 
-        return {
-            "title": dish_title,
-            "ingredients": ingredients_text,
-            "instructions": instructions_str,
-        }
-    else:
-        return {
-            "not_found": f"Xin lỗi, tôi không tìm thấy thông tin cho món '{dish_name}'."
-        }
 
-    # # def find_vegetarian_dishes(limit=10): # Giới hạn số lượng món trả về
-    # if df_recipes is None:
-    #     return {"error": "Xin lỗi, tôi không thể truy cập dữ liệu món ăn vào lúc này."}
-
-    # else:
-    #     # --- CÁCH 3: Phỏng đoán dựa trên nguyên liệu (KÉM CHÍNH XÁC HƠN) ---
-    #     # Đây là một ví dụ rất cơ bản và cần cải thiện nhiều
-    #     # print("Thông báo: Không có cột đánh dấu món chay. Thử phỏng đoán dựa trên nguyên liệu (kết quả có thể không chính xác).")
-    #     # non_veg_keywords = ['thịt', 'cá', 'gà', 'bò', 'heo', 'tôm', 'cua', 'mực', 'trứng'] # Có thể mở rộng
-    #     # vegetarian_dishes = []
-    #     # # THAY 'Title' VÀ 'Cleaned_Ingredients' BẰNG TÊN CỘT THỰC TẾ
-    #     # for index, row in df_recipes.iterrows():
-    #     #     is_vegetarian = True
-    #     #     ingredients_lower = str(row['Cleaned_Ingredients']).lower()
-    #     #     for keyword in non_veg_keywords:
-    #     #         if keyword in ingredients_lower:
-    #     #             is_vegetarian = False
-    #     #             break
-    #     #     if is_vegetarian:
-    #     #         vegetarian_dishes.append(row['Title'])
-    #     #     if len(vegetarian_dishes) >= limit * 5: # Quét một phần để không quá chậm
-    #     #         break
-    #     return {
-    #         "error": "Không tìm thấy cột thông tin món chay trong dataset. Tính năng này chưa được hỗ trợ đầy đủ."
-    #     }
-
-    # if vegetarian_dishes:
-    #     return {
-    #         "dishes": list(set(vegetarian_dishes))[:limit]
-    #     }  # Trả về danh sách không trùng lặp và giới hạn số lượng
-    # else:
-    #     return {
-    #         "not_found": "Xin lỗi, tôi không tìm thấy món chay nào trong dữ liệu hiện tại."
-    #     }
+# Tải dữ liệu khi module được import
+print("Đang tải dữ liệu món ăn...")
+load_recipes_data()
+print("\nXem trước dữ liệu món ăn:")
+preview_data()

@@ -36,26 +36,30 @@ def get_chatbot_response(request):
 
         bot_reply = ""
 
+        # In ra log để debug
+        print(f"[CHAT] Câu hỏi người dùng: '{user_message_original}'")
+
         dish_to_search = extract_dish_name_from_query(user_message_original)
 
         if not dish_to_search:
-            print(
-                f"Gemini không trích xuất được tên món ăn từ '{user_message_original}'."
-            )
+            print(f"Không trích xuất được tên món ăn từ '{user_message_original}'.")
             bot_reply = "Xin lỗi, tôi chưa hiểu rõ bạn muốn hỏi về món ăn nào. Bạn có thể vui lòng cho biết tên món ăn cụ thể được không?"
-
-        if dish_to_search:
+        else:
+            print(f"[CHAT] Tìm kiếm món: '{dish_to_search}'")
             dish_details = get_dish_details(dish_to_search)
+            print(f"[CHAT] Kết quả tìm kiếm: {dish_details.keys()}")
 
             if "error" in dish_details:
                 bot_reply = dish_details["error"]
+                print(f"[CHAT] Lỗi: {bot_reply}")
             elif "not_found" in dish_details:
                 if dish_to_search.lower() == user_message_original.lower():
                     bot_reply = f"Xin lỗi, tôi không tìm thấy thông tin cho món '{dish_to_search}' trong cơ sở dữ liệu của mình."
                 else:
                     bot_reply = f"Xin lỗi, tôi không tìm thấy thông tin cho món '{dish_to_search}' (được hiểu từ câu '{user_message_original}') trong cơ sở dữ liệu của mình."
-
+                print(f"[CHAT] Không tìm thấy món: {bot_reply}")
             elif "title" in dish_details:
+                print(f"[CHAT] Tìm thấy món ăn: {dish_details['title']}")
                 # Format ingredients with line breaks
                 ingredients_text = ""
                 if "ingredients" in dish_details and dish_details["ingredients"]:
