@@ -26,6 +26,9 @@ def get_chatbot_response(request):
         try:
             data = json.loads(request.body)
             user_message_original = data.get("message", "").strip()
+            clean_response = data.get(
+                "clean_response", False
+            )  # Kiểm tra cờ clean_response
         except json.JSONDecodeError:
             return JsonResponse(
                 {"reply": "Lỗi: Dữ liệu gửi lên không hợp lệ."}, status=400
@@ -63,27 +66,29 @@ def get_chatbot_response(request):
                 # Format ingredients with line breaks
                 ingredients_text = ""
                 if "ingredients" in dish_details and dish_details["ingredients"]:
-                    # Check if ingredients is a string or a list
-                    if isinstance(dish_details["ingredients"], list):
+                    # Clean up the ingredients string first
+                    ingredients = dish_details["ingredients"]
+
+                    # Remove unwanted characters
+                    ingredients = str(ingredients)
+                    ingredients = ingredients.replace("[", "").replace("]", "")
+                    ingredients = ingredients.replace('"', "").replace("'", "")
+
+                    # Check if ingredients is a list or a string
+                    if isinstance(ingredients, list):
                         ingredients_text = "\n".join(
-                            [
-                                f"• {ingredient}"
-                                for ingredient in dish_details["ingredients"]
-                            ]
+                            [f"• {ingredient.strip()}" for ingredient in ingredients]
                         )
                     else:
                         # Split by commas or semicolons if it's a string
                         ingredients_list = [
-                            i.strip()
-                            for i in dish_details["ingredients"]
-                            .replace(";", ",")
-                            .split(",")
+                            i.strip() for i in ingredients.replace(";", ",").split(",")
                         ]
                         ingredients_text = "\n".join(
                             [
-                                f"• {ingredient}"
+                                f"• {ingredient.strip()}"
                                 for ingredient in ingredients_list
-                                if ingredient
+                                if ingredient.strip()
                             ]
                         )
 
@@ -115,6 +120,13 @@ def get_chatbot_response(request):
                 )
             else:
                 bot_reply = f"Đã có lỗi xảy ra khi tìm thông tin món '{dish_to_search}'. Vui lòng thử lại."
+
+        # Làm sạch kết quả trả về nếu được yêu cầu
+        if clean_response and bot_reply:
+            import re
+
+            # Xóa các ký tự đặc biệt
+            bot_reply = re.sub(r"[\[\]\'\"\{\}\(\)\\]", "", bot_reply)
 
         return JsonResponse({"reply": bot_reply})
 

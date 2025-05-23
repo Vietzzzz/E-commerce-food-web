@@ -19,6 +19,25 @@
             max-width: 70%;
             clear: both;
             word-wrap: break-word;
+            white-space: pre-wrap;  /* Giữ nguyên các dấu xuống dòng */
+            line-height: 1.5;  /* Tăng khoảng cách dòng */
+        }
+        /* Styling for the bullet points */
+        .message-bubble ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        .message-bubble li {
+            margin-bottom: 5px;
+        }
+
+        /* Additional style to ensure text is clean */
+        .message-bubble {
+            font-family: Arial, sans-serif;
+        }
+        .message-bubble strong {
+            font-weight: 700;
         }
         .chat-input { display: flex; padding: 15px; border-top: 1px solid #eee;}
         .chat-input input { flex-grow: 1; border: 1px solid #ddd; padding: 10px; border-radius: 20px; margin-right: 10px; }
@@ -63,10 +82,26 @@
             messageDiv.classList.add('chat-message', sender);
             const bubbleDiv = document.createElement('div');
             bubbleDiv.classList.add('message-bubble');
-            bubbleDiv.textContent = message;
+            
+            // Format message: replace markdown-style formatting with HTML and clean special characters
+            let formattedMessage = message
+                // Bold text
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')  
+                // Remove more special characters
+                .replace(/\[|\]|\'|\"|\{|\}|\(|\)/g, '')  
+                // Replace multiple spaces with a single space
+                .replace(/\s+/g, ' ')  
+                // Clean up any leftover characters like backslashes
+                .replace(/\\+/g, '')  
+                // Double line breaks
+                .replace(/\n\n/g, '<br><br>')  
+                // Single line breaks
+                .replace(/\n/g, '<br>');  
+    
+            bubbleDiv.innerHTML = formattedMessage;
             messageDiv.appendChild(bubbleDiv);
             chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight; // Cuộn xuống tin nhắn mới nhất
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function showTypingIndicator() {
@@ -98,17 +133,34 @@
             addMessage(messageText, 'user');
             userInput.value = '';
             const typingIndicator = showTypingIndicator();
-
+            
+            // Get CSRF token from cookies
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            
             try {
-                {% comment %} const response = await fetch("{% url 'chatbot:get_chatbot_response' %}", { {% endcomment %}
                 const response = await fetch("/chatbot/get-response/", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        // Nếu bạn dùng CSRF token thực sự thay vì @csrf_exempt:
-                        // 'X-CSRFToken': '{{ csrf_token }}' // Lấy CSRF token nếu cần
+                        'X-CSRFToken': getCookie('csrftoken')  // Add CSRF token
                     },
-                    body: JSON.stringify({ message: messageText })
+                    body: JSON.stringify({ 
+                        message: messageText,
+                        clean_response: true  // Add flag to request clean response
+                    })
                 });
 
                 removeTypingIndicator();
@@ -120,7 +172,11 @@
                 }
 
                 const data = await response.json();
-                addMessage(data.reply, 'bot');
+                // Clean data before displaying
+                let cleanReply = data.reply
+                    .replace(/\[|\]|\'|\"|\{|\}|\(|\)/g, '')
+                    .replace(/\\+/g, '');
+                addMessage(cleanReply, 'bot');
 
             } catch (error) {
                 removeTypingIndicator();
