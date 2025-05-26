@@ -223,7 +223,7 @@
               <div class="col-xl-3 col-lg-4">
                 <div class="header-info">
                   <ul>
-                    <li><a href="page-about.htlm">About Us</a></li>
+                    <li><a href="page-about.html">About Us</a></li>
                     <li><a href="page-account.html">My Account</a></li>
                     <li><a href="shop-wishlist.html">Wishlist</a></li>
                     <li><a href="shop-order.html">Order Tracking</a></li>
@@ -320,7 +320,7 @@
           <div class="container">
             <div class="header-wrap">
               <div class="logo logo-width-1">
-                <a href="index.html"
+                <a href="base.html"
                   ><img
                     src="{% static 'assets/imgs/theme/logo.svg' %}"
                     alt="logo"
@@ -488,7 +488,7 @@
           <div class="container">
             <div class="header-wrap header-space-between position-relative">
               <div class="logo logo-width-1 d-block d-lg-none">
-                <a href="index.html"
+                <a href="base.html"
                   ><img
                     src="{% static 'assets/imgs/theme/logo.svg' %}"
                     alt="logo"
@@ -618,18 +618,11 @@
                       <li>
                         <a href="#">Vendors <i class="fi-rs-angle-down"></i></a>
                         <ul class="sub-menu">
-                          <li><a href="vendors-grid.html">Vendors Grid</a></li>
-                          <li><a href="vendors-list.html">Vendors List</a></li>
                           <li>
-                            <a href="vendor-details-1.html">Vendor Details 01</a>
+                            <a href="{% url 'core:vendor-list' %}">
+                              <i class="fas fa-store mr-5"></i>All Vendors
+                            </a>
                           </li>
-                          <li>
-                            <a href="vendor-details-2.html">Vendor Details 02</a>
-                          </li>
-                          <li>
-                            <a href="vendor-dashboard.html">Vendor Dashboard</a>
-                          </li>
-                          <li><a href="vendor-guide.html">Vendor Guide</a></li>
                         </ul>
                       </li>
                       <li class="position-static">
@@ -1348,7 +1341,7 @@
                 <div class="col">
                   <div class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0">
                     <div class="logo mb-30">
-                      <a href="index.html" class="mb-15"
+                <a href="base.html" class="mb-15"
                         ><img
                           src="{% static 'assets/imgs/theme/logo.svg' %}"
                           alt="logo"
@@ -1578,4 +1571,3 @@
         {% include 'partials/chatbot_widget.html' %}
       </body>
     </html>
-
