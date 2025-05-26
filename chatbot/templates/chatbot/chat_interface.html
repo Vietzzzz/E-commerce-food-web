@@ -126,6 +126,10 @@
             }
         }
 
+        // Thêm biến session_id
+        let sessionId = localStorage.getItem('chatbot_session_id') || 'user_' + Date.now();
+        localStorage.setItem('chatbot_session_id', sessionId);
+
         async function sendMessage() {
             const messageText = userInput.value.trim();
             if (messageText === '') return;
@@ -159,7 +163,8 @@
                     },
                     body: JSON.stringify({ 
                         message: messageText,
-                        clean_response: true  // Add flag to request clean response
+                        clean_response: true,
+                        session_id: sessionId
                     })
                 });
 
@@ -172,6 +177,13 @@
                 }
 
                 const data = await response.json();
+                
+                // Cập nhật session_id nếu server trả về
+                if (data.session_id) {
+                    sessionId = data.session_id;
+                    localStorage.setItem('chatbot_session_id', sessionId);
+                }
+                
                 // Clean data before displaying
                 let cleanReply = data.reply
                     .replace(/\[|\]|\'|\"|\{|\}|\(|\)/g, '')

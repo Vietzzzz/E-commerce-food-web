@@ -145,3 +145,63 @@ def extract_dish_name_from_query(user_query, dish_titles_from_dataset=None):
         print(f"Lỗi khi trích xuất tên món ăn: {e}")
         # Thử phương pháp dự phòng
         return find_closest_dish_match(clean_query)
+
+
+def is_asking_for_alternative(user_query):
+    """Kiểm tra xem người dùng có đang yêu cầu món khác không"""
+    user_query = user_query.lower()
+    alternative_phrases = [
+        "món khác",
+        "món tương tự",
+        "món thay thế",
+        "một món khác",
+        "món ăn khác",
+        "thay thế",
+        "gợi ý khác",
+        "đổi món",
+        "món gì khác",
+        "không thích món này",
+        "món nào khác",
+        "có món nào khác",
+    ]
+
+    for phrase in alternative_phrases:
+        if phrase in user_query:
+            return True
+
+    return False
+
+
+def extract_keyword_only(user_query):
+    """
+    Trích xuất TỪ KHÓA chính (tên món/thành phần) từ câu truy vấn,
+    không thực hiện fuzzy matching với danh sách món ăn đầy đủ.
+    """
+    clean_query = user_query.strip().lower()
+    try:
+        # Giả sử bạn có model và settings được cấu hình
+        # Đây là phần gọi Gemini API (bạn có thể giữ nguyên từ bước trước)
+        prompt = f"""
+        Từ câu sau đây: "{clean_query}", hãy trích xuất TỪ KHÓA chính là tên món ăn hoặc thành phần chính.
+        Chỉ trả về TỪ KHÓA đó, ngắn gọn nhất có thể. Ví dụ:
+        - "tôi muốn ăn phở bò" -> "phở bò"
+        - "cách làm cá kho tộ" -> "cá kho tộ"
+        - "chicken" -> "chicken"
+        - "cơm sườn" -> "cơm sườn"
+        Nếu không chắc, trả về từ chính trong câu.
+        Từ khóa:
+        """
+        response = model.generate_content(prompt)  # Giả sử model đã được khởi tạo
+        extracted_keyword = response.text.strip()
+        extracted_keyword = re.sub(
+            r"[^\w\sàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệđìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]",
+            "",
+            extracted_keyword,
+        ).strip()
+
+        print(f"Gemini trích xuất TỪ KHÓA từ '{clean_query}' -> '{extracted_keyword}'")
+        return extracted_keyword if extracted_keyword else clean_query
+
+    except Exception as e:
+        print(f"Lỗi khi trích xuất từ khóa: {e}")
+        return clean_query  # Trả về câu gốc nếu lỗi

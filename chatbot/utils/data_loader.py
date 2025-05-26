@@ -3,8 +3,9 @@ import os
 import pandas as pd
 import re
 from django.conf import settings
-from .gemini_client import load_dish_names
+from .gemini_client import load_dish_names, extract_keyword_only
 from fuzzywuzzy import process
+
 
 DATASET_PATH = os.path.join(settings.BASE_DIR, "data", "recipes.csv")
 df_recipes = None
@@ -14,12 +15,41 @@ def load_recipes_data():
     """Tải dữ liệu từ file CSV"""
     global df_recipes
     try:
-        # Try different encodings if needed
-        try:
-            df_recipes = pd.read_csv(DATASET_PATH)
-        except UnicodeDecodeError:
-            df_recipes = pd.read_csv(DATASET_PATH, encoding="latin1")
-            print("Sử dụng encoding latin1 cho CSV")
+        # Log the file path being used
+        print(f"Attempting to load CSV from: {DATASET_PATH}")
+
+        # Verify if file exists
+        if not os.path.exists(DATASET_PATH):
+            print(f"Error: File not found at {DATASET_PATH}")
+            return None
+
+        # Check file size to ensure it's not empty
+        if os.path.getsize(DATASET_PATH) == 0:
+            print(f"Error: File at {DATASET_PATH} is empty")
+            return None
+
+        # Try loading CSV with multiple encoding options
+        encodings = ["utf-8", "utf-8-sig", "latin1", "iso-8859-1"]
+        for encoding in encodings:
+            try:
+                df_recipes = pd.read_csv(DATASET_PATH, encoding=encoding)
+                print(f"Successfully loaded CSV with {encoding} encoding")
+                break
+            except UnicodeDecodeError:
+                print(f"Failed to load CSV with {encoding} encoding, trying next...")
+            except pd.errors.EmptyDataError:
+                print(f"Error: CSV file at {DATASET_PATH} is empty")
+                return None
+            except pd.errors.ParserError:
+                print(f"Error: CSV file at {DATASET_PATH} is malformed or corrupted")
+                return None
+        else:
+            print(f"Error: Could not load CSV with any encoding: {DATASET_PATH}")
+            return None
+
+        if df_recipes is None or df_recipes.empty:
+            print(f"Error: Loaded DataFrame is empty or None")
+            return None
 
         print(f"Đã tải dữ liệu từ {DATASET_PATH}: {len(df_recipes)} món ăn")
         print(f"Columns in CSV: {', '.join(df_recipes.columns)}")
@@ -27,22 +57,22 @@ def load_recipes_data():
         # Map column names to standardized names (case insensitive)
         column_mapping = {
             "title": [
-                "title",
                 "Title",
+                "title",
                 "TÊN MÓN",
                 "name",
                 "dish_name",
                 "ten",
             ],
             "ingredients": [
-                "ingredients",
+                "Cleaned_Ingredients",  # Prioritize Cleaned_Ingredients
                 "Ingredients",
+                "ingredients",
                 "NGUYÊN LIỆU",
-                "Cleaned_Ingredients",
             ],
             "instructions": [
-                "instructions",
                 "Instructions",
+                "instructions",
                 "CÁCH LÀM",
                 "steps",
             ],
@@ -56,8 +86,7 @@ def load_recipes_data():
                     actual_columns[std_col] = col_name
                     print(f"Đã tìm thấy cột {std_col}: {col_name}")
                     break
-
-            if std_col not in actual_columns:
+            else:
                 print(f"Cảnh báo: Không tìm thấy cột {std_col} trong CSV")
 
         # Check if we found the title column
@@ -94,9 +123,6 @@ def load_recipes_data():
         load_dish_names(all_dish_names)
         return df_recipes
 
-    except FileNotFoundError:
-        print(f"Không tìm thấy file dữ liệu tại {DATASET_PATH}")
-        return None
     except Exception as e:
         print(f"Lỗi khi tải dữ liệu: {str(e)}")
         import traceback
@@ -201,7 +227,6 @@ def find_dish_fuzzy(dish_name, threshold=70):
         return {"error": f"Lỗi trong fuzzy matching: {str(e)}"}
 
 
-# Add a function to preview actual data
 def preview_data():
     global df_recipes
 
@@ -212,7 +237,6 @@ def preview_data():
             return
 
     print("\n=== PREVIEW OF RECIPE DATA ===")
-    # Display first few rows with specific columns
     cols_to_show = ["title"]
     cols_to_show.extend(
         [c for c in ["ingredients", "instructions"] if c in df_recipes.columns]
@@ -233,6 +257,104 @@ def preview_data():
                 if len(row["instructions"]) > 100
                 else row["instructions"]
             )
+
+
+def get_alternative_dish(
+    previous_dish=None,
+    original_query=None,
+    limit=10,
+    min_similarity=40,
+    max_similarity=75,
+):
+    """
+    Tìm món ăn thay thế: Ưu tiên Fuzzy Match với TỪ KHÓA,
+    sau đó là 'contains', cuối cùng là ngẫu nhiên.
+    """
+    global df_recipes
+
+    if df_recipes is None:
+        df_recipes = load_recipes_data()
+        if df_recipes is None:
+            return {"error": "Không thể tải dữ liệu món ăn"}
+
+    try:
+        print(f"Query gốc: '{original_query}'")
+        print(f"Món đã gợi ý trước đó: '{previous_dish}'")
+
+        # 1. Trích xuất TỪ KHÓA chính từ query gốc
+        keyword = extract_keyword_only(original_query)
+        print(f"Từ khóa tìm kiếm (món khác): '{keyword}'")
+
+        # 2. Lấy danh sách các món khả dụng (loại trừ món cũ)
+        available_dishes_df = df_recipes[
+            df_recipes["title"].str.lower() != previous_dish.lower()
+        ]
+        available_titles = available_dishes_df["title"].tolist()
+
+        if not available_titles:
+            return {"not_found": True}  # Không còn món nào khác
+
+        chosen_dish_df = None
+
+        # 3. Thử Fuzzy Matching (ưu tiên)
+        # Sử dụng extractBests để tìm các món có tên tương tự từ khóa.
+        # score_cutoff=75 nghĩa là chỉ lấy các món có độ tương đồng >= 75
+        fuzzy_matches = process.extractBests(
+            keyword, available_titles, score_cutoff=75, limit=15
+        )
+        print(f"Fuzzy matches (score >= 75): {fuzzy_matches}")
+
+        potential_dishes_titles = [match[0] for match in fuzzy_matches]
+
+        if potential_dishes_titles:
+            print(f"Sử dụng Fuzzy matches.")
+            # Lấy DataFrame tương ứng với các món tìm thấy
+            chosen_dish_df = available_dishes_df[
+                available_dishes_df["title"].isin(potential_dishes_titles)
+            ]
+
+        # 4. Nếu Fuzzy không có, thử str.contains
+        if chosen_dish_df is None or chosen_dish_df.empty:
+            print("Fuzzy không có kết quả phù hợp, thử str.contains.")
+            filtered_dishes = available_dishes_df[
+                available_dishes_df["title"]
+                .str.lower()
+                .str.contains(keyword.lower(), na=False)
+            ]
+            if filtered_dishes.empty and "ingredients" in available_dishes_df.columns:
+                filtered_dishes = available_dishes_df[
+                    available_dishes_df["ingredients"]
+                    .str.lower()
+                    .str.contains(keyword.lower(), na=False)
+                ]
+            if not filtered_dishes.empty:
+                print("Sử dụng str.contains matches.")
+                chosen_dish_df = filtered_dishes
+
+        # 5. Nếu vẫn không có, chọn ngẫu nhiên
+        if chosen_dish_df is None or chosen_dish_df.empty:
+            print("str.contains không có kết quả, chọn ngẫu nhiên.")
+            chosen_dish_df = available_dishes_df  # Dùng tất cả món còn lại
+
+        # 6. Chọn một món từ danh sách đã lọc (hoặc ngẫu nhiên)
+        dish = chosen_dish_df.sample(1).iloc[0]
+
+        # 7. Trả về kết quả
+        result = {"title": dish["title"]}
+        if "ingredients" in df_recipes.columns:
+            result["ingredients"] = str(dish["ingredients"])
+        if "instructions" in df_recipes.columns:
+            result["instructions"] = str(dish["instructions"])
+
+        print(f"Đã chọn món thay thế: '{result['title']}'")
+        return result
+
+    except Exception as e:
+        import traceback
+
+        print(f"Lỗi khi tìm món ăn thay thế: {str(e)}")
+        print(traceback.format_exc())
+        return {"error": f"Lỗi khi tìm món ăn thay thế: {str(e)}"}
 
 
 # Tải dữ liệu khi module được import
