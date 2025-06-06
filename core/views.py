@@ -499,7 +499,9 @@ def create_checkout_session(request, oid):
 @login_required
 def payment_completed_view(request, oid):
     order = CartOrder.objects.get(oid=oid)
-    if order.paid_status == False:
+
+    # Update order status if needed
+    if not order.paid_status:
         order.paid_status = True
         order.save()
 
