@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "userauths",
     "django.contrib.humanize",
     "chatbot",
+    "useradmin",
 ]
 
 MIDDLEWARE = [

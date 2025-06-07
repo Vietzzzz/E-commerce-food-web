@@ -4,12 +4,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.contrib import messages
+from decimal import Decimal
 
 from core.models import CartOrder, CartOrderItems, Product, Category, ProductReview
 from core.models import CartOrderItems
 from userauths.models import Profile, User
 from useradmin.forms import AddProductForm
 from useradmin.decorators import admin_required
+from .models import DashboardAnalytics
 
 import datetime
 
@@ -27,6 +29,17 @@ def dashboard(request):
     monthly_revenue = CartOrder.objects.filter(order_date__month=this_month).aggregate(
         price=Sum("price")
     )
+
+    # Save analytics to database
+    analytics = DashboardAnalytics(
+        revenue=revenue["price"] if revenue["price"] is not None else Decimal("0.00"),
+        orders_count=total_orders_count.count(),
+        products_count=all_products.count() if all_products else 0,
+        monthly_earning=monthly_revenue["price"]
+        if monthly_revenue["price"] is not None
+        else Decimal("0.00"),
+    )
+    analytics.save()
 
     context = {
         "monthly_revenue": monthly_revenue,
