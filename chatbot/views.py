@@ -2,10 +2,12 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 import json
 import re
 from fuzzywuzzy import process
 from core.models import Product
+from django.conf import settings
 
 # Đảm bảo import đầy đủ các hàm cần thiết
 from .utils.data_loader import (
@@ -66,13 +68,17 @@ def get_chatbot_response(request):
                 match, score = process.extractOne(ing, all_titles)
                 if score >= MIN_SCORE:
                     prod = Product.objects.get(title=match)
+                    # dùng URL từ Product.image hoặc fallback placeholder
+                    if hasattr(prod, "image") and prod.image:
+                        img_path = prod.image.url  # nếu là ImageField
+                    else:
+                        img_path = settings.STATIC_URL + "images/default_product.png"
+                    img_url = request.build_absolute_uri(img_path)
                     cart[str(prod.id)] = {
                         "title": prod.title,
                         "qty": 1,
                         "price": str(prod.price),
-                        "image": prod.p_images.first().image.url
-                        if prod.p_images.exists()
-                        else "",
+                        "image": img_url,
                         "pid": prod.pid,
                     }
                     added.append(match)
@@ -283,14 +289,17 @@ def chat_endpoint(request):
             match, score = process.extractOne(ing, all_titles)
             if score >= MIN_SCORE:
                 prod = Product.objects.get(title=match)
-                key = str(prod.id)
-                cart[key] = {
+                # dùng URL từ Product.image hoặc fallback placeholder
+                if hasattr(prod, "image") and prod.image:
+                    img_path = prod.image.url
+                else:
+                    img_path = settings.STATIC_URL + "images/default_product.png"
+                img_url = request.build_absolute_uri(img_path)
+                cart[str(prod.id)] = {
                     "title": prod.title,
                     "qty": 1,
                     "price": str(prod.price),
-                    "image": prod.p_images.first().image.url
-                    if prod.p_images.exists()
-                    else "",
+                    "image": img_url,
                     "pid": prod.pid,
                 }
                 added.append(match)
