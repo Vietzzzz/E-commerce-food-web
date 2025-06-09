@@ -4,6 +4,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 import re
+from fuzzywuzzy import process
+from core.models import Product
 
 # Đảm bảo import đầy đủ các hàm cần thiết
 from .utils.data_loader import (
@@ -20,6 +22,19 @@ from .utils.gemini_client import (
 # Biến lưu trữ session của người dùng
 user_session_data = {}
 
+MIN_SCORE = 60
+
+
+def parse_ingredients(text):
+    """
+    Tìm đoạn chứa danh sách nguyên liệu sau từ 'chuẩn bị' hoặc dấu ':' rồi split bằng dấu phẩy.
+    """
+    m = re.search(r"chuẩn bị[:\-]\s*(.+?)(?:\.|$)", text, re.IGNORECASE)
+    if not m:
+        return []
+    items = [i.strip() for i in m.group(1).split(",") if i.strip()]
+    return items
+
 
 def chatbot_view(request):
     return render(request, "chatbot/chat_interface.html")
@@ -28,6 +43,43 @@ def chatbot_view(request):
 @csrf_exempt
 def get_chatbot_response(request):
     if request.method == "POST":
+        # Đọc payload JSON trước để lấy message và session_id
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"reply": "Dữ liệu gửi lên không hợp lệ."}, status=400)
+        user_msg = data.get("message", "").strip()
+        clean_response = data.get("clean_response", False)
+        session_id = data.get("session_id", "default")
+
+        # Nếu không có message thì hỏi lại
+        if not user_msg:
+            return JsonResponse({"reply": "Bạn muốn hỏi về món ăn nào nhỉ?"})
+
+        # 1) Nếu đang chờ 'ok' để thêm nguyên liệu vào cart
+        pending = request.session.get("pending_ingredients")
+        if pending and user_msg.lower() == "ok":
+            cart = request.session.get("cart_data_obj", {})
+            all_titles = list(Product.objects.values_list("title", flat=True))
+            added = []
+            for ing in pending:
+                match, score = process.extractOne(ing, all_titles)
+                if score >= MIN_SCORE:
+                    prod = Product.objects.get(title=match)
+                    cart[str(prod.id)] = {
+                        "title": prod.title,
+                        "qty": 1,
+                        "price": str(prod.price),
+                        "image": prod.p_images.first().image.url
+                        if prod.p_images.exists()
+                        else "",
+                        "pid": prod.pid,
+                    }
+                    added.append(match)
+            request.session["cart_data_obj"] = cart
+            request.session.pop("pending_ingredients")
+            return JsonResponse({"reply": f"Đã thêm vào giỏ: {', '.join(added)}."})
+        # 2) Mặc định: xử lý gọi Gemini như trước
         try:
             data = json.loads(request.body)
             user_message_original = data.get("message", "").strip()
@@ -157,26 +209,26 @@ def get_chatbot_response(request):
                         user_message_original
                     )
 
-                    # Format ingredients with line breaks
+                    # Format ingredients với line breaks và lưu thẳng list vào session
+                    ingredients_list = []
                     ingredients_text = ""
                     if "ingredients" in dish_details and dish_details["ingredients"]:
-                        # Clean up the ingredients string
-                        ingredients = str(dish_details["ingredients"])
-                        ingredients = ingredients.replace("[", "").replace("]", "")
-                        ingredients = ingredients.replace('"', "").replace("'", "")
-
+                        raw = str(dish_details["ingredients"])
+                        raw = raw.strip("[]").replace("'", "").replace('"', "")
                         ingredients_list = [
-                            i.strip() for i in ingredients.replace(";", ",").split(",")
+                            i.strip()
+                            for i in raw.replace(";", ",").split(",")
+                            if i.strip()
                         ]
                         ingredients_text = "\n".join(
-                            [
-                                f"• {ingredient.strip()}"
-                                for ingredient in ingredients_list
-                                if ingredient.strip()
-                            ]
+                            [f"• {i}" for i in ingredients_list]
                         )
 
-                    # Format instructions with line breaks
+                    # LƯU thẳng danh sách vào session để đợi 'ok'
+                    if ingredients_list:
+                        request.session["pending_ingredients"] = ingredients_list
+
+                    # Format instructions với line breaks
                     instructions_text = ""
                     if "instructions" in dish_details and dish_details["instructions"]:
                         if isinstance(dish_details["instructions"], list):
@@ -202,6 +254,9 @@ def get_chatbot_response(request):
                         f"**Nguyên liệu:**\n{ingredients_text}\n\n"
                         f"**Hướng dẫn thực hiện:**\n{instructions_text}"
                     )
+                    # hỏi user có muốn thêm cart không
+                    if ingredients_list:
+                        bot_reply += "\n\nBạn có muốn thêm những nguyên liệu này vào giỏ hàng không? (gõ 'ok' để thêm)"
                 else:
                     bot_reply = f"Đã có lỗi xảy ra khi tìm thông tin món '{dish_to_search}'. Vui lòng thử lại."
 
@@ -212,3 +267,46 @@ def get_chatbot_response(request):
         return JsonResponse({"reply": bot_reply, "session_id": session_id})
 
     return JsonResponse({"reply": "Yêu cầu không hợp lệ."}, status=400)
+
+
+@csrf_exempt
+def chat_endpoint(request):
+    user_msg = request.POST.get("message", "").strip()
+    # bước 1: nếu đang chờ 'ok' để add cart
+    pending = request.session.get("pending_ingredients")
+    if pending and user_msg.lower() == "ok":
+        added = []
+        cart = request.session.get("cart_data_obj", {})
+        # lấy toàn bộ title product để fuzzy match
+        all_titles = list(Product.objects.values_list("title", flat=True))
+        for ing in pending:
+            match, score = process.extractOne(ing, all_titles)
+            if score >= MIN_SCORE:
+                prod = Product.objects.get(title=match)
+                key = str(prod.id)
+                cart[key] = {
+                    "title": prod.title,
+                    "qty": 1,
+                    "price": str(prod.price),
+                    "image": prod.p_images.first().image.url
+                    if prod.p_images.exists()
+                    else "",
+                    "pid": prod.pid,
+                }
+                added.append(match)
+        request.session["cart_data_obj"] = cart
+        # xóa pending
+        request.session.pop("pending_ingredients")
+        return JsonResponse({"reply": f"Đã thêm vào giỏ: {', '.join(added)}."})
+    # bước 2: gọi Gemini để trả lời bình thường
+    # giả sử bạn có 2 param dish_name_from_dataset, ingredients_list_str từ bước tìm dataset
+    dish_name = request.POST.get("dish_name", "")
+    ing_str = request.POST.get("ingredients_list_str", "")
+    suggestion = get_enhanced_dish_suggestion(user_msg, dish_name, ing_str)
+    # tách nguyên liệu
+    ings = parse_ingredients(suggestion)
+    if ings:
+        # lưu vào session và hỏi thêm
+        request.session["pending_ingredients"] = ings
+        suggestion += "\n\nBạn có muốn thêm những nguyên liệu này vào giỏ hàng không? (gõ 'ok' để thêm)"
+    return JsonResponse({"reply": suggestion})
