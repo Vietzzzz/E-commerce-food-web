@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "core",
     "userauths",
     "django.contrib.humanize",
+    "chatbot",
     "useradmin",
 ]
 
@@ -338,3 +339,5 @@ PAYPAL_TEST = True
 
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = env("STRIPE_PUBLIC_KEY")
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")

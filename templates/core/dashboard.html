@@ -65,7 +65,7 @@
                                                     <span><input class="mb-2" type="text" value="Phone - {{ user_profile.phone  }}"></span>
                                                     {% if user_profile.verified == True %}
                                                     <div class="p-4 border rounded">
-                                                        <span>Verified</span> <span> <i class="fas fa-check-circle"><i> </span>
+                                                        <span>Verified</span> <span> <i class="fas fa-check-circle"></i> </span>
                                                     </div>
                                                     {% else %}
                                                     <div class="p-4 border rounded">
@@ -74,7 +74,8 @@
                                                     {% endif %}
                                                     <div class="p-4 border rounded">
                                                         <a href="{%url 'userauths:profile-update'%}" class="btn btn-success">Edit Profile</a>
-                                                   </div>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             {% comment %} <div class="mt-4 ">

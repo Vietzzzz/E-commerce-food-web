@@ -97,12 +97,6 @@ urlpatterns = [
         views.create_checkout_session,
         name="create_checkout_session",
     ),
-    ###########################################
-    # path("api/suggest-food/", views.suggest_food_api, name="suggest_food_api"),
-    # Thêm các URL khác của app recipes nếu có
-    path(
-        "api/suggest-from-last-order/",
-        views.suggest_from_last_order_api,
-        name="suggest_from_last_order_api",
-    ),
+    # chatbot
+    path("chatbot/", include("chatbot.urls")),
 ]

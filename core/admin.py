@@ -30,6 +30,15 @@ class ProductAdmin(admin.ModelAdmin):
         "product_status",
         "pid",
     ]
+    search_fields = [
+        "title",
+        "description",
+        "pid",
+        "user__username",
+        "category__title",
+        "vendor__title",
+    ]
+    list_filter = ["category", "vendor", "featured", "product_status"]
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -44,6 +53,7 @@ class VendorAdmin(admin.ModelAdmin):
         "title",
         "vendor_image",
     ]
+    search_fields = ["title", "description", "address"]
 
 
 class CartOrderAdmin(admin.ModelAdmin):
@@ -55,6 +65,15 @@ class CartOrderAdmin(admin.ModelAdmin):
         "order_date",
         "product_status",
     ]
+    search_fields = [
+        "user__username",
+        "user__email",
+        "oid",
+        "full_name",
+        "email",
+        "phone",
+    ]
+    list_filter = ["paid_status", "product_status", "order_date"]
 
 
 class CartOrderItemsAdmin(admin.ModelAdmin):
@@ -67,6 +86,8 @@ class CartOrderItemsAdmin(admin.ModelAdmin):
         "price",
         "total",
     ]
+    search_fields = ["invoice_no", "item", "order__oid", "order__user__username"]
+    list_filter = ["order__product_status"]
 
 
 class ProductReviewAdmin(admin.ModelAdmin):
