@@ -82,6 +82,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "ecommerce_food_web.middleware.MediaServeMiddleware",  # Add custom media serving middleware
 ]
 
 ROOT_URLCONF = "ecommerce_food_web.urls"
@@ -211,6 +212,7 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
         "OPTIONS": {
             "location": MEDIA_ROOT,
+            "base_url": MEDIA_URL,
         },
     },
     "staticfiles": {
