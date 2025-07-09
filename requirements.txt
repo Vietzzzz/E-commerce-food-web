@@ -13,9 +13,13 @@ django-humanize
 
 # Database
 psycopg2-binary
+dj-database-url
 
 # Image processing
 Pillow
+
+# Static files serving
+whitenoise
 
 # Payment integration
 django-paypal
@@ -26,6 +30,9 @@ google-generativeai
 pandas
 fuzzywuzzy
 python-Levenshtein
+
+# Production server
+gunicorn
 
 # Additional utilities
 requests 
