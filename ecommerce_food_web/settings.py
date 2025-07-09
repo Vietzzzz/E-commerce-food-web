@@ -207,10 +207,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Use StaticFilesStorage instead of CompressedManifestStaticFilesStorage
 # to avoid issues with missing source maps
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": MEDIA_ROOT,
+        },
+    },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
 
 # Security settings for production
 if not DEBUG:
