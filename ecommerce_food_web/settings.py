@@ -160,14 +160,33 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
+# Whitenoise configuration
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = [
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp",
+    "zip",
+    "gz",
+    "tgz",
+    "bz2",
+    "tbz",
+    "xz",
+    "br",
+]
+WHITENOISE_MANIFEST_STRICT = False  # Allow missing files in manifest
+
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# Configure Whitenoise to compress and serve static files efficiently.
+# Configure Whitenoise to serve static files efficiently.
+# Use StaticFilesStorage instead of CompressedManifestStaticFilesStorage
+# to avoid issues with missing source maps
 STORAGES = {
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
