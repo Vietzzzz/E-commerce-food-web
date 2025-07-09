@@ -19,7 +19,8 @@ dj-database-url
 Pillow
 
 # Static files serving
-whitenoise
+# Static files serving
+whitenoisenoise
 
 # Payment integration
 django-paypal

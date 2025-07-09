@@ -4,10 +4,11 @@ from django.conf import settings
 import re
 from fuzzywuzzy import process
 
-genai.configure(api_key=settings.GOOGLE_API_KEY)
-
-# Khởi tạo model
-model = genai.GenerativeModel("gemini-1.5-flash-latest")
+# Initialize model only if API key is available
+model = None
+if hasattr(settings, "GOOGLE_API_KEY") and settings.GOOGLE_API_KEY:
+    genai.configure(api_key=settings.GOOGLE_API_KEY)
+    model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
 # Thêm biến toàn cục để lưu trữ danh sách món ăn
 all_dish_names = []
@@ -25,9 +26,14 @@ def load_dish_names(dish_names):
 def get_gemini_suggestion(prompt_text):
     if not settings.GOOGLE_API_KEY:
         return "Lỗi: API Key của Google chưa được cấu hình."
+
     try:
-        response = model.generate_content(prompt_text)
-        return response.text
+        # Only configure if API key is available
+        if settings.GOOGLE_API_KEY and model:
+            response = model.generate_content(prompt_text)
+            return response.text
+        else:
+            return "Google API Key chưa được cấu hình."
     except Exception as e:
         print(f"Lỗi khi gọi Gemini API: {e}")
         return f"Xin lỗi, đã có lỗi xảy ra khi kết nối với AI: {e}"
