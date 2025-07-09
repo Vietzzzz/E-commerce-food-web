@@ -36,3 +36,5 @@ gunicorn
 
 # Additional utilities
 requests 
+
+shortuuid==1.0.11
