@@ -1,7 +1,31 @@
+# Core Django framework
 Django>=5.0
+
+# Environment and configuration
 python-dotenv
+environs
+
+# Django extensions
 django-jazzmin
 django-taggit
 django-ckeditor-5
-psycopg2
-Pillow 
+django-humanize
+
+# Database
+psycopg2-binary
+
+# Image processing
+Pillow
+
+# Payment integration
+django-paypal
+stripe
+
+# AI and ML
+google-generativeai
+pandas
+fuzzywuzzy
+python-Levenshtein
+
+# Additional utilities
+requests 
